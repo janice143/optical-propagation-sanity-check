@@ -76,6 +76,15 @@ def test_report_serializes_to_json(tmp_path):
     assert payload["model"] == report.model
     assert len(payload["checks"]) == 6
 
+    markdown_path = tmp_path / "nested" / "report.md"
+    report.save_markdown(markdown_path)
+    markdown = markdown_path.read_text()
+    assert f"Decision: {report.overall}" in markdown
+    assert "## Check status" in markdown
+    assert "max_active_phase_step_over_pi" in markdown
+    assert "max_supported_phase_step_over_pi" in markdown
+    assert "retained_input_spectral_energy" in markdown
+
 
 def test_field_errors_ignore_global_scale_and_phase():
     rng = np.random.default_rng(2)

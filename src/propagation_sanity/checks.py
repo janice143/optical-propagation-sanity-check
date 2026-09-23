@@ -243,7 +243,34 @@ def _frequency_sampling(field, grid, thresholds, window_status) -> CheckResult:
     )
 
 
-def _propagator_sampling(model, propagation, thresholds, context) -> CheckResult:
+def _max_phase_step_over_pi(phase: np.ndarray, mask: np.ndarray) -> float:
+    steps = []
+    active_x = mask[:, 1:] & mask[:, :-1]
+    active_y = mask[1:, :] & mask[:-1, :]
+    if np.any(active_x):
+        steps.append(np.max(np.abs(np.diff(phase, axis=1)[active_x])))
+    if np.any(active_y):
+        steps.append(np.max(np.abs(np.diff(phase, axis=0)[active_y])))
+    return float(max(steps, default=0.0) / np.pi)
+
+
+def _center_pad(field: np.ndarray, factor: int) -> np.ndarray:
+    if factor < 1:
+        raise ValueError("sampling_grid_factor must be at least 1")
+    if factor == 1:
+        return field
+    target_y, target_x = factor * field.shape[0], factor * field.shape[1]
+    pad_y, pad_x = target_y - field.shape[0], target_x - field.shape[1]
+    return np.pad(
+        field,
+        (
+            (pad_y // 2, pad_y - pad_y // 2),
+            (pad_x // 2, pad_x - pad_x // 2),
+        ),
+    )
+
+
+def _propagator_sampling(model, field, grid, propagation, thresholds, context) -> CheckResult:
     if model.transfer_phase is None:
         return CheckResult(
             "Propagator sampling",
@@ -251,22 +278,70 @@ def _propagator_sampling(model, propagation, thresholds, context) -> CheckResult
             reason="No analytic transfer-phase hook was supplied for this model.",
             recommendations=["Provide transfer_phase(FX, FY, propagation) to enable this check."],
         )
-    _, fx_grid, fy_grid, _, _, active, _, _ = context
+    sampling_factor = model.sampling_grid_factor
+    if sampling_factor == 1:
+        sampling_context = context
+    else:
+        sampling_field = _center_pad(field, sampling_factor)
+        sampling_context = _spectrum_context(sampling_field, grid, thresholds)
+    spectrum, fx_grid, fy_grid, _, _, active, _, _ = sampling_context
     phase = model.transfer_phase(fx_grid, fy_grid, propagation)
-    steps = []
-    active_x = active[:, 1:] & active[:, :-1]
-    active_y = active[1:, :] & active[:-1, :]
-    if np.any(active_x):
-        steps.append(np.max(np.abs(np.diff(phase, axis=1)[active_x])))
-    if np.any(active_y):
-        steps.append(np.max(np.abs(np.diff(phase, axis=0)[active_y])))
-    ratio = float(max(steps, default=0.0) / np.pi)
-    status = _threshold_status(ratio, thresholds.propagator_phase_warn_pi, thresholds.propagator_phase_fail_pi)
+    raw_ratio = _max_phase_step_over_pi(phase, active)
+    raw_status = _threshold_status(
+        raw_ratio,
+        thresholds.propagator_phase_warn_pi,
+        thresholds.propagator_phase_fail_pi,
+    )
+    metrics = {
+        "max_active_phase_step_over_pi": raw_ratio,
+        "internal_sampling_grid_factor": sampling_factor,
+    }
+    reason = "Analytic, unwrapped transfer-phase steps over the field's active spectrum."
+    status = raw_status
+    if model.spectral_support is not None:
+        support = np.asarray(
+            model.spectral_support(fx_grid, fy_grid, grid, propagation), dtype=bool
+        )
+        if support.shape != active.shape:
+            raise ValueError("spectral_support must return a mask matching the frequency grid")
+        supported_ratio = _max_phase_step_over_pi(phase, active & support)
+        supported_status = _threshold_status(
+            supported_ratio,
+            thresholds.propagator_phase_warn_pi,
+            thresholds.propagator_phase_fail_pi,
+        )
+        spectral_energy = np.abs(spectrum) ** 2
+        retained = float(spectral_energy[support].sum() / spectral_energy.sum())
+        metrics.update(
+            {
+                "max_supported_phase_step_over_pi": supported_ratio,
+                "retained_input_spectral_energy": retained,
+            }
+        )
+        if supported_status == "FAIL":
+            status = "FAIL"
+            reason = (
+                "Transfer phase is undersampled even inside the BLAS-retained spectral "
+                "support; band limiting does not resolve the sampling failure."
+            )
+        elif raw_status in {"WARN", "FAIL"}:
+            status = "WARN"
+            reason = (
+                "BLAS mitigates the raw transfer-phase sampling problem inside its "
+                "retained support, but does not make the underlying active spectrum "
+                "fully sampled; retained spectral energy is reported as evidence."
+            )
+        else:
+            status = "PASS"
+            reason = (
+                "Raw and BLAS-supported transfer-phase steps satisfy the configured "
+                "sampling thresholds; retained spectral energy is reported separately."
+            )
     return CheckResult(
         "Propagator sampling",
         status,
-        {"max_active_phase_step_over_pi": ratio},
-        "Analytic, unwrapped transfer-phase steps over the field's active spectrum.",
+        metrics,
+        reason,
         ["Increase N at fixed dx/dy, shorten z, or use a defensible band limit."] if status in ("WARN", "FAIL") else [],
     )
 
@@ -368,7 +443,7 @@ def sanity_check(
         input_check,
         window_check,
         _frequency_sampling(field, grid, resolved_thresholds, window_check.status),
-        _propagator_sampling(model, propagation, resolved_thresholds, context),
+        _propagator_sampling(model, field, grid, propagation, resolved_thresholds, context),
         _model_validity(field, grid, propagation, model, reference_model, resolved_thresholds, context, model_result),
     ]
     decision_statuses = [check.status for check in checks if check.status != "INFO"]

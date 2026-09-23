@@ -222,17 +222,25 @@ def _blas_limits(
     return fx_limit, fy_limit
 
 
+def blas_spectral_support(
+    fx: np.ndarray,
+    fy: np.ndarray,
+    grid: GridSpec,
+    propagation: PropagationSpec,
+) -> np.ndarray:
+    """Return the rectangular frequency support retained by waveprop BLAS."""
+
+    fx_limit, fy_limit = _blas_limits(fx.shape, grid, propagation)
+    return (np.abs(fx) <= fx_limit) & (np.abs(fy) <= fy_limit)
+
+
 def asm_validity(field, grid, propagation, active_mask, fx, fy) -> dict:
     evanescent_energy = _energy_ratio(
         fft2c(field), (fx**2 + fy**2) > 1 / propagation.wavelength**2
     )
-    fx_limit, fy_limit = _blas_limits(field.shape, grid, propagation)
-    outside = active_mask & ((np.abs(fx) > fx_limit) | (np.abs(fy) > fy_limit))
-    active_count = max(int(active_mask.sum()), 1)
     return {
         "phase_error_rad": 0.0,
         "evanescent_energy_ratio": evanescent_energy,
-        "active_spectrum_outside_blas": float(outside.sum() / active_count),
         "criterion": "scalar ASM has no paraxial approximation; numerical checks still apply",
     }
 
@@ -264,6 +272,7 @@ ASM_MODEL = PropagationModel(
     exact_asm_phase,
     asm_validity,
     "Default model: band-limited ASM without internal padding.",
+    spectral_support=blas_spectral_support,
 )
 ASM_PADDED_MODEL = PropagationModel(
     "Waveprop band-limited ASM (padded)",
@@ -271,6 +280,8 @@ ASM_PADDED_MODEL = PropagationModel(
     exact_asm_phase,
     asm_validity,
     "Band-limited ASM with waveprop-owned zero padding.",
+    spectral_support=blas_spectral_support,
+    sampling_grid_factor=2,
 )
 ASM_UNBANDED_MODEL = PropagationModel(
     "Waveprop ASM (bandlimit disabled)",

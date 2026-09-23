@@ -41,6 +41,9 @@ class PropagationResult:
 
 
 TransferPhaseHook = Callable[[np.ndarray, np.ndarray, PropagationSpec], np.ndarray]
+SpectralSupportHook = Callable[
+    [np.ndarray, np.ndarray, GridSpec, PropagationSpec], np.ndarray
+]
 ValidityHook = Callable[
     [np.ndarray, GridSpec, PropagationSpec, np.ndarray, np.ndarray, np.ndarray],
     dict[str, Any],
@@ -57,6 +60,8 @@ class PropagationModel:
     transfer_phase: TransferPhaseHook | None = None
     validity_hook: ValidityHook | None = None
     description: str = ""
+    spectral_support: SpectralSupportHook | None = None
+    sampling_grid_factor: int = 1
 
 
 @dataclass(frozen=True)
@@ -161,3 +166,81 @@ class SanityReport:
             encoding="utf-8",
         )
 
+    def to_markdown(self) -> str:
+        """Return a decision-first, human-readable report."""
+
+        blocking = [check for check in self.checks if check.status == "FAIL"]
+        warnings = [check for check in self.checks if check.status in {"WARN", "SKIP"}]
+        decision = {
+            "PASS": "Proceed with this configuration.",
+            "WARN": "Proceed only after reviewing the warnings below.",
+            "FAIL": "Do not use this configuration for production results yet.",
+        }[self.overall]
+        lines = [
+            f"# {self.model}",
+            "",
+            f"**Decision: {self.overall} — {decision}**",
+            "",
+        ]
+        if blocking:
+            lines.extend(
+                [
+                    "## Blocking checks",
+                    "",
+                    *[f"- **{check.name}:** {check.reason}" for check in blocking],
+                    "",
+                ]
+            )
+        if warnings:
+            lines.extend(
+                [
+                    "## Review before proceeding",
+                    "",
+                    *[
+                        f"- **{check.name} ({check.status}):** {check.reason}"
+                        for check in warnings
+                    ],
+                    "",
+                ]
+            )
+        lines.extend(
+            [
+                "## Check status",
+                "",
+                "| Check | Status | Key evidence |",
+                "|---|---:|---|",
+            ]
+        )
+        for check in self.checks:
+            evidence_items = list(check.metrics.items())[:3]
+            if check.name == "Propagator sampling":
+                preferred = (
+                    "max_active_phase_step_over_pi",
+                    "max_supported_phase_step_over_pi",
+                    "retained_input_spectral_energy",
+                )
+                evidence_items = [
+                    (key, check.metrics[key]) for key in preferred if key in check.metrics
+                ]
+            evidence = ", ".join(
+                f"`{key}={value * 100:.2f}%`"
+                if key == "retained_input_spectral_energy"
+                else f"`{key}={_format_metric(value)}`"
+                for key, value in evidence_items
+            )
+            lines.append(f"| {check.name} | **{check.status}** | {evidence or '—'} |")
+        recommendations = []
+        for check in self.checks:
+            recommendations.extend(check.recommendations)
+        if recommendations:
+            lines.extend(["", "## Recommended actions", ""])
+            lines.extend(f"- {item}" for item in dict.fromkeys(recommendations))
+        lines.extend(["", f"> {self.note}", ""])
+        return "\n".join(lines)
+
+    def save_markdown(self, path: str | Path) -> None:
+        """Save the decision-first report as Markdown."""
+
+        destination = Path(path)
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_text(self.to_markdown(), encoding="utf-8")

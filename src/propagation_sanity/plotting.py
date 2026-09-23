@@ -39,10 +39,15 @@ def render_status_matrix(
     if not items:
         raise ValueError("reports must contain at least one SanityReport")
 
-    check_names = [check.name for check in items[0][1].checks]
+    check_names = ["Overall decision"] + [check.name for check in items[0][1].checks]
     status_matrix = np.array(
         [
-            [STATUS_ORDER[check_by_name(report, name).status] for _, report in items]
+            [
+                STATUS_ORDER[report.overall]
+                if name == "Overall decision"
+                else STATUS_ORDER[check_by_name(report, name).status]
+                for _, report in items
+            ]
             for name in check_names
         ]
     )
@@ -60,16 +65,22 @@ def render_status_matrix(
     ax.set_yticks(range(len(check_names)), check_names)
     for row, name in enumerate(check_names):
         for column, (_, report) in enumerate(items):
+            status = (
+                report.overall
+                if name == "Overall decision"
+                else check_by_name(report, name).status
+            )
             ax.text(
                 column,
                 row,
-                check_by_name(report, name).status,
+                status,
                 ha="center",
                 va="center",
                 color="white",
                 fontsize=9,
                 fontweight="bold",
             )
+    ax.axhline(0.5, color="white", linewidth=2.5)
     if title:
         ax.set_title(title)
     if output_path is not None:
@@ -79,4 +90,3 @@ def render_status_matrix(
     if show:
         plt.show()
     return fig, ax
-
