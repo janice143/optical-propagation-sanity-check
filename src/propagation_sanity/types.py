@@ -41,6 +41,9 @@ class PropagationResult:
 
 
 TransferPhaseHook = Callable[[np.ndarray, np.ndarray, PropagationSpec], np.ndarray]
+SamplingFrequencyGridHook = Callable[
+    [tuple[int, int], GridSpec], tuple[np.ndarray, np.ndarray]
+]
 SpectralSupportHook = Callable[
     [np.ndarray, np.ndarray, GridSpec, PropagationSpec], np.ndarray
 ]
@@ -62,6 +65,7 @@ class PropagationModel:
     description: str = ""
     spectral_support: SpectralSupportHook | None = None
     sampling_grid_factor: int = 1
+    sampling_frequency_grid: SamplingFrequencyGridHook | None = None
 
 
 @dataclass(frozen=True)

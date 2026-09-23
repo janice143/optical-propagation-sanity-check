@@ -285,6 +285,16 @@ def _propagator_sampling(model, field, grid, propagation, thresholds, context) -
         sampling_field = _center_pad(field, sampling_factor)
         sampling_context = _spectrum_context(sampling_field, grid, thresholds)
     spectrum, fx_grid, fy_grid, _, _, active, _, _ = sampling_context
+    if model.sampling_frequency_grid is not None:
+        fx_grid, fy_grid = model.sampling_frequency_grid(spectrum.shape, grid)
+        energy = np.abs(spectrum) ** 2
+        active_fx = _axis_energy_limit(
+            fx_grid[0], energy.sum(axis=0), thresholds.spectrum_energy_fraction
+        )
+        active_fy = _axis_energy_limit(
+            fy_grid[:, 0], energy.sum(axis=1), thresholds.spectrum_energy_fraction
+        )
+        active = (np.abs(fx_grid) <= active_fx) & (np.abs(fy_grid) <= active_fy)
     phase = model.transfer_phase(fx_grid, fy_grid, propagation)
     raw_ratio = _max_phase_step_over_pi(phase, active)
     raw_status = _threshold_status(

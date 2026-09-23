@@ -1,5 +1,10 @@
+from dataclasses import replace
+
 import numpy as np
 import pytest
+from waveprop.rs import _bandpass as waveprop_bandpass
+
+import propagation_sanity.propagators as propagators
 
 from propagation_sanity import (
     ASM_MODEL,
@@ -43,6 +48,52 @@ def test_direct_integration_requires_square_array():
         DIRECT_INTEGRATION_MODEL.propagate(
             field, grid, PropagationSpec(532e-9, 2e-3)
         )
+
+
+def test_asm_sampling_uses_waveprop_frequency_grid_for_odd_shapes():
+    shape = (31, 41)
+    grid = GridSpec(dx=8e-6, dy=10e-6)
+    field = np.ones(shape, dtype=np.complex128)
+    captured = {}
+
+    def capture_phase(fx, fy, propagation):
+        captured["fx"] = fx
+        captured["fy"] = fy
+        return np.zeros(shape)
+
+    model = replace(ASM_UNBANDED_MODEL, transfer_phase=capture_phase)
+    sanity_check(
+        field,
+        grid=grid,
+        propagation=PropagationSpec(532e-9, 2e-3),
+        model=model,
+    )
+
+    expected_fx, expected_fy = propagators.waveprop_asm_frequency_grid(shape, grid)
+    assert np.array_equal(captured["fx"], expected_fx)
+    assert np.array_equal(captured["fy"], expected_fy)
+
+
+def test_blas_support_matches_waveprop_boundary_rules(monkeypatch):
+    grid = GridSpec(dx=1.0)
+    propagation = PropagationSpec(wavelength=1.0, z=3 * np.sqrt(15.0) / 2)
+    axis = np.array([-0.25, 0.0, 0.25])
+    fx, fy = np.meshgrid(axis, axis)
+    support = propagators.blas_spectral_support(fx, fy, grid, propagation)
+
+    transfer = np.ones((3, 3), dtype=np.complex128)
+    filtered = waveprop_bandpass(
+        transfer,
+        fx,
+        fy,
+        Sx=2.0,
+        Sy=2.0,
+        x0=0.0,
+        y0=0.0,
+        z0=propagation.z,
+        wv=propagation.wavelength,
+    )
+    assert np.array_equal(support, filtered != 0)
 
 
 def test_blas_sampling_verdict_uses_retained_spectral_support():

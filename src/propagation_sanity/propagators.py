@@ -186,6 +186,17 @@ def propagate_direct_integration(
     )
 
 
+def waveprop_asm_frequency_grid(
+    shape: tuple[int, int], grid: GridSpec
+) -> tuple[np.ndarray, np.ndarray]:
+    """Return the exact frequency coordinates used by waveprop ASM."""
+
+    ny, nx = shape
+    fx = np.arange(-nx / 2, nx / 2) / (nx * grid.dx)
+    fy = np.arange(-ny / 2, ny / 2) / (ny * grid.resolved_dy)
+    return np.meshgrid(fx, fy)
+
+
 def exact_asm_phase(
     fx: np.ndarray, fy: np.ndarray, propagation: PropagationSpec
 ) -> np.ndarray:
@@ -231,7 +242,7 @@ def blas_spectral_support(
     """Return the rectangular frequency support retained by waveprop BLAS."""
 
     fx_limit, fy_limit = _blas_limits(fx.shape, grid, propagation)
-    return (np.abs(fx) <= fx_limit) & (np.abs(fy) <= fy_limit)
+    return (np.abs(fx) <= fx_limit) & (np.abs(fy) < fy_limit)
 
 
 def asm_validity(field, grid, propagation, active_mask, fx, fy) -> dict:
@@ -273,6 +284,7 @@ ASM_MODEL = PropagationModel(
     asm_validity,
     "Default model: band-limited ASM without internal padding.",
     spectral_support=blas_spectral_support,
+    sampling_frequency_grid=waveprop_asm_frequency_grid,
 )
 ASM_PADDED_MODEL = PropagationModel(
     "Waveprop band-limited ASM (padded)",
@@ -282,6 +294,7 @@ ASM_PADDED_MODEL = PropagationModel(
     "Band-limited ASM with waveprop-owned zero padding.",
     spectral_support=blas_spectral_support,
     sampling_grid_factor=2,
+    sampling_frequency_grid=waveprop_asm_frequency_grid,
 )
 ASM_UNBANDED_MODEL = PropagationModel(
     "Waveprop ASM (bandlimit disabled)",
@@ -289,6 +302,7 @@ ASM_UNBANDED_MODEL = PropagationModel(
     exact_asm_phase,
     asm_validity,
     "Diagnostic model for demonstrating the effect of ASM band limiting.",
+    sampling_frequency_grid=waveprop_asm_frequency_grid,
 )
 FRESNEL_MODEL = PropagationModel(
     "Fresnel convolution", propagate_fresnel, fresnel_phase, fresnel_validity
