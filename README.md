@@ -1,187 +1,211 @@
-# Numerical Scalar Wave Propagation Sanity Check Toolkit
+# Propagation Sanity
 
-> **Primary Disclaimer:**  
-> **This toolkit does not prove physical correctness.** It only provides evidence about numerical stability, sampling adequacy, and known discretization risks within the tested scalar wave propagation model.
+<p align="center">
+  <img src="./assets/readme/hero.svg" width="100%"
+       alt="Propagation Sanity — numerical scalar wave propagation validation toolkit. Title, value statement, install command, and code window showing the validate() API.">
+</p>
 
----
-
-## 1. Why This Project Exists
-
-In computational optics, scalar diffraction simulations (such as the Angular Spectrum Method, Fresnel diffraction, or Rayleigh-Sommerfeld integration) are widely used in metasurface design, holography, beam propagation, and differentiable optical neural networks.
-
-However, simulations routinely suffer from silent numerical failure modes:
-1. **Chirp aliasing**: The transfer function oscillates faster than the Nyquist sampling rate (common in standard ASM at moderate-to-large distances).
-2. **Circular convolution artifacts**: FFT-based methods assume periodic boundaries; without adequate zero-padding, diffracted energy wraps around.
-3. **Domain truncation**: Non-compact beams or widely diffracted lobes truncate against the edge of the numerical window.
-4. **Model approximation error**: Using the paraxial Fresnel approximation outside its validity domain.
-5. **Numerical overfitting in inverse design**: Optimizers exploit spurious numerical artifacts (like unbandlimited ASM transfer function chirps) to achieve artificially low training losses.
-
-This toolkit provides an **evidence-oriented validation framework** that detects, diagnoses, and reports these numerical risks before conclusions are drawn from simulations.
+> **Primary disclaimer**
+>
+> **This toolkit does not prove physical correctness.** It produces evidence about numerical stability, sampling adequacy, and known discretization risks inside the tested scalar propagation model. Read every `FAIL`, `UNVERIFIED`, and `OUT_OF_SCOPE` the same way you would read a CI log: as the absence of a guarantee, not its presence.
 
 ---
 
-## 2. Quick Start (Python & CLI)
+## The problem in one paragraph
 
-### Python API
+In computational optics, scalar diffraction simulations — the Angular Spectrum Method, band-limited ASM, Fresnel, Rayleigh–Sommerfeld direct integration — drive metasurface design, holography, beam shaping, and differentiable optical networks. They also fail silently. A transfer function can oscillate faster than Nyquist without warning. FFT boundaries can wrap energy around the window. Diffracted lobes can leave the domain. Optimizers can settle into unbandlimited artifacts that produce a beautiful training loss and a useless device.
+
+**Propagation Sanity is an evidence-oriented validator for exactly these failure modes.** It classifies each check, runs convergence experiments when a re-sampleable source is available, and reports a structured verdict — not a handwave.
+
+---
+
+## Quickstart
+
+### Install
+
+```bash
+pip install propagation-sanity
+```
+
+### Validate one scenario from the CLI
+
+```bash
+# Quick terminal summary
+propagation-sanity check --scenario square --z-mm 100
+
+# Full validation + convergence + interactive HTML dashboard
+propagation-sanity check --scenario square --z-mm 100 --convergence --html dashboard.html
+```
+
+### Use the Python API directly
 
 ```python
 from propagation_sanity.core import (
-    Grid, Wave, SquareAperture, PropagationConfig, PropagationMethod, SimulationContract
+    Grid, Wave, SquareAperture, PropagationConfig, PropagationMethod, SimulationContract,
 )
 from propagation_sanity.validate import validate
 from propagation_sanity.core.report import ValidationReport
 
-# 1. Define the simulation contract
 contract = SimulationContract(
     grid=Grid(nx=512, ny=512, dx=2e-6, dy=2e-6),
     wave=Wave(wavelength=532e-9),
-    z=100e-3,  # 100 mm propagation
+    z=100e-3,                                       # 100 mm propagation
     propagation_config=PropagationConfig(method=PropagationMethod.ASM, bandlimit=False),
     source=SquareAperture(half_width=50e-6),
     characteristic_size=100e-6,
 )
 
-# 2. Run validation with convergence experiments
 report = validate(contract, run_convergence=True)
 
-# 3. Print terminal summary
-print(report.summary())
-
-# 4. Save structured JSON report
-report.save("validation_report.json")
-
-# 5. Export interactive Notion-style HTML dashboard
+print(report.summary())               # terminal box-drawn report
+report.save("validation_report.json")  # structured JSON
 report.save_html("validation_dashboard.html")
+report.view(format="terminal")        # or format="html", open_browser=True
 
-# 6. View interactively in browser or terminal
-# report.view(format="html", open_browser=True)  # Pops open browser
-report.view(format="terminal")                 # Formatted box-drawn console view
-
-# 7. Reload report anytime from JSON
-loaded_report = ValidationReport.load("validation_report.json")
-```
-
-### Command Line Interface (CLI)
-
-```bash
-# Run validation check with terminal summary
-propagation-sanity check --scenario square --z-mm 100
-
-# Run validation and save structured JSON
-propagation-sanity check --scenario square --z-mm 100 --convergence -o report.json
-
-# Run validation and export Notion-style HTML visualizer
-propagation-sanity check --scenario square --z-mm 100 --convergence --html dashboard.html
-
-# Render existing JSON report in formatted terminal mode
-propagation-sanity view report.json
-
-# Render existing JSON report as interactive HTML dashboard and open browser
-propagation-sanity view report.json --browser
-
-# Convert existing JSON report to HTML file
-propagation-sanity view report.json --format html -o dashboard.html
-
-# Run benchmark suites and export results to JSON
-propagation-sanity benchmark --scenario square -o square_benchmark.json
+# Reload any saved report
+loaded = ValidationReport.load("validation_report.json")
 ```
 
 ---
 
-## 3. Reporting & Visualization Layer (Notion Style)
+## Five silent failure modes — caught before you publish
 
-The toolkit features a dedicated **view layer** (`propagation_sanity.viewer`) designed in a **minimalist Notion aesthetic** (black-and-white, clean typography, spacious layout, zero loud neon elements).
+<p align="center">
+  <img src="./assets/readme/failure-modes.svg" width="100%"
+       alt="Five cards: chirp aliasing, circular convolution, domain truncation, paraxial misuse, numerical overfitting.">
+</p>
 
-### Core Viewer Capabilities
-
-1. **Interactive Standalone HTML Dashboard (`html_viewer.py`)**:
-   - **Self-contained**: Single HTML file with embedded report JSON data and pure SVG/CSS components. Operates offline without external web servers.
-   - **Notion Page Properties**: Clean header displaying status badge, propagator method, distance ($z$), wavelength ($\lambda$), resolution, spatial extent ($L$), and Fresnel number ($N_F$).
-   - **Executive Callout**: Distinct Notion callout block summarizing numerical health and actionable physical warnings.
-   - **Convergence Progression Bars**: Minimalist step-by-step progress bars comparing intensity relative error across grid resolutions, physical domains, and FFT padding against the $1.0\%$ tolerance threshold.
-   - **Spectral Support vs. Matsushima Limit**: Ruler-style spectrum diagram displaying the $99\%$ field energy boundary relative to the Matsushima admissible bandlimit ($f_{\text{limit}}$) and Nyquist frequency ($f_{\text{Nyq}}$).
-   - **Toggle List Checklist (`▶ / ▼`)**: Notion-style collapsible list of all checks, complete with formula blocks, mathematical assumptions, physical interpretation, and literature citations.
-   - **Universal Drag & Drop**: Drop **any** `*.json` report file directly into the browser window to instantly parse and visualize it client-side.
-   - **Light / Dark Mode**: Full support for classic Notion white paper mode (`#ffffff`) and Notion dark mode (`#191919`).
-
-2. **Formatted Terminal Viewer (`terminal_viewer.py`)**:
-   - Clean Unicode box-drawing characters (`┌─┐`, `│`, `└─┘`).
-   - Clear ANSI status indicators (`[ PASS ]`, `[ FAIL ]`, `[ CONVERGED ]`, `[ INFO ]`).
-   - Automatic TTY detection with fallback to plain text when piped.
+| # | Mode | What goes wrong | Toolkit signal |
+|---|---|---|---|
+| 1 | **Chirp aliasing** | ASM transfer function oscillates faster than the spatial Nyquist rate | `FORMAL_CRITERION` (Matsushima 2009) → `PASS` / `FAIL` |
+| 2 | **Circular convolution** | FFT assumes periodic boundaries; without zero-padding, diffracted energy wraps | `FORMAL_CRITERION` padding bound + `CROSS_REFERENCE` |
+| 3 | **Domain truncation** | Non-compact beams or wide lobes truncate against the window edge | `DIAGNOSTIC` boundary energy + `CONVERGENCE` over $L$ |
+| 4 | **Paraxial misuse** | Fresnel approximation used outside its validity domain | `CROSS_REFERENCE` ASM vs. Fresnel vs. Direct Integration |
+| 5 | **Numerical overfitting** | Inverse-design optimizers exploit unbandlimited chirp artifacts | Cross-eval under an independent verified forward model |
 
 ---
 
-## 4. What This Project Can Validate
+## Why evidence, not assertion
 
-- **Sampling adequacy**: Whether spatial grid $\Delta x$ and frequency grid $\Delta f$ adequately capture the input field and propagation transfer function.
-- **Matsushima BLAS sampling bounds**: Whether ASM transfer function chirp oscillations exceed the aliasing-free sampling bound.
-- **Physical domain containment**: Whether energy leaks into the domain edges or diffracted lobes exceed the computation window.
-- **Numerical convergence**: Whether results stabilize under grid refinement (resolution convergence), window enlargement (domain convergence), or FFT padding (algorithmic padding convergence).
-- **Model validity indicator**: Discrepancy between ASM and the Fresnel paraxial approximation.
+The toolkit does not guess whether a simulation is "fine". Each check is **typed** by the kind of evidence it can produce, and each output status is restricted to the outcomes that type actually supports:
 
----
-
-## 5. What It Cannot Validate
-
-- **Vector / Maxwell physics**: Polarization, near-field evanescent coupling within sub-wavelength distances, or high-NA vector effects.
-- **Medium inhomogeneities**: Complex inhomogeneous index distributions (FDTD/BPM scope).
-- **Experimental reality**: Fabricated device aberrations, laser coherence length limits, detector noise.
-
----
-
-## 6. Validation Hierarchy & Assessment Types
-
-Checks are categorized strictly to avoid false confidence:
-
-| Assessment Type | Meaning | Allowed Outputs |
+| Assessment type | Meaning | Allowed outputs |
 |---|---|---|
-| **DERIVED** | Exact analytical / DFT relations ($L = N\Delta x$, $\Delta f = 1/L$, $f_N = 1/(2\Delta x)$) | `INFO` |
-| **DIAGNOSTIC** | Informative risk indicators (spectral edge energy, boundary energy, phase step) | `INFO` |
-| **FORMAL_CRITERION** | Literature-derived mathematical bounds (e.g. Matsushima 2009 admissible band) | `PASS` / `FAIL` |
-| **CONVERGENCE** | Refinement experiments (resolution, domain, padding) | `CONVERGED_AT_TOLERANCE` / `NOT_CONVERGED` / `UNVERIFIED` |
-| **CROSS_REFERENCE** | Comparison against an independent baseline (DI, analytic, BLAS) | `AGREES_AT_TOLERANCE` / `DISAGREES` |
-| **SCOPE_CHECK** | Checks if configuration exceeds scalar domain (e.g. evanescent dominance) | `INFO` / `OUT_OF_SCOPE` |
+| `DERIVED` | Exact relations ($L = N\Delta x$, $\Delta f = 1/L$, $f_N = 1/(2\Delta x)$) | `INFO` |
+| `DIAGNOSTIC` | Informative risk indicators (spectral edge energy, boundary energy, phase step) | `INFO` |
+| `FORMAL_CRITERION` | Literature-derived mathematical bounds (Matsushima 2009 admissible band) | `PASS` / `FAIL` |
+| `CONVERGENCE` | Refinement experiments (resolution, domain, padding) | `CONVERGED_AT_TOLERANCE` / `NOT_CONVERGED` / `UNVERIFIED` |
+| `CROSS_REFERENCE` | Comparison against an independent baseline (DI, analytic, BLAS) | `AGREES_AT_TOLERANCE` / `DISAGREES` |
+| `SCOPE_CHECK` | Configuration exceeds scalar domain (e.g. evanescent dominance) | `INFO` / `OUT_OF_SCOPE` |
+
+> **`UNVERIFIED` is not a pass.** It means the toolkit did not have a re-sampleable `FieldSource` to run refinement experiments, or convergence execution was disabled. Treat it as "stability has not been demonstrated at the requested tolerance", not "all good."
 
 ---
 
-## 7. How to Interpret `UNVERIFIED`
+## How it works
 
-If a convergence test returns `UNVERIFIED`:
-- It means the toolkit did not have the necessary re-sampleable `FieldSource` to conduct refinement experiments (e.g. only an already-sampled array was supplied), or convergence execution was disabled (`run_convergence=False`).
-- **`UNVERIFIED` is NOT a pass.** It explicitly informs the researcher that numerical stability has not yet been demonstrated at the requested tolerance.
+<p align="center">
+  <img src="./assets/readme/pipeline.svg" width="100%"
+       alt="Pipeline: SimulationContract → validate() → ValidationReport → dashboard viewer.">
+</p>
+
+1. **Contract** — declare `Grid`, `Wave`, source, propagation config, and a characteristic size.
+2. **Validate** — sampling adequacy, Matsushima BLAS bound, domain containment, and convergence over resolution / domain / padding.
+3. **Report** — structured `ValidationReport` with typed checks, verdicts, and literature citations.
+4. **View** — terminal box-drawn report, or a self-contained Notion-style HTML dashboard with drag-and-drop JSON reload.
 
 ---
 
-## 8. Examples & Benchmarks
+## Examples & benchmarks
 
-### Benchmark 1: Square Aperture Regression
-Re-evaluates the classical square aperture ($N=512$, $\Delta x=2\,\mu\text{m}$, $\lambda=532\,\text{nm}$, $a=100\,\mu\text{m}$) across $z \in [1, 10, 100, 150]\,\text{mm}$:
+### 1 · Square aperture regression
+
+Re-evaluates the classical square-aperture case ($N = 512$, $\Delta x = 2\,\mu\text{m}$, $\lambda = 532\,\text{nm}$, $a = 100\,\mu\text{m}$) across $z \in \{1, 10, 100, 150\}\,\text{mm}$:
+
 ```bash
 propagation-sanity benchmark --scenario square
 ```
-- At $z=1\,\text{mm}$: Standard ASM and BLAS match to $<0.01\%$.
-- At $z=150\,\text{mm}$: Standard ASM suffers from severe chirp aliasing (discrepancy $>28\%$), while the Matsushima formal criterion flags `FAIL`.
 
-### Benchmark 2: Self-Accelerating Airy Beam
-Demonstrates non-compact field handling where physical-domain convergence requires field regeneration rather than simple zero-padding:
+- At $z = 1\,\text{mm}$: standard ASM and BLAS match to **< 0.01 %**.
+- At $z = 150\,\text{mm}$: standard ASM suffers severe chirp aliasing (**> 28 %** discrepancy); the Matsushima formal criterion flags `FAIL`.
+
+### 2 · Self-accelerating Airy beam
+
+Demonstrates non-compact field handling where physical-domain convergence requires field regeneration, not just zero-padding:
+
 ```bash
 propagation-sanity benchmark --scenario airy
 ```
 
-### Benchmark 3: Differentiable Optics Numerical Overfitting
-Optimizes a phase element under a numerically weak propagator (unbandlimited ASM at large $z$) vs. a validated propagator (BLAS). Evaluating both designs under an independent, verified forward model proves that the weakly trained design suffered severe numerical overfitting.
+### 3 · Numerical overfitting in differentiable optics
+
+Optimizes a phase element under a numerically weak propagator (unbandlimited ASM at large $z$) versus a validated propagator (BLAS). Re-evaluating both designs under an independent verified forward model proves that the weakly trained design suffers severe numerical overfitting.
+
+See `examples/03_differentiable_optics_overfitting.ipynb` for the full reproduction.
 
 ---
 
-## 9. Backends & Adapters
+## Reporting & visualization layer
 
-- **`WavepropAdapter` (`backend="waveprop"`)**: Production-ready CPU/NumPy propagation adapter supporting ASM, band-limited ASM (BLAS), single-step Fresnel, Fraunhofer, and Rayleigh–Sommerfeld Direct Integration (DI and FFT-DI).
-- **`TorchOpticsAdapter` (`backend="torchoptics"`)**: PyTorch-native differentiable optics adapter cleanly decoupling field geometry (`Field`, `PlanarGrid`, `shape`, `spacing`) from propagation settings (`propagation_method`, `asm_pad`, output resampling). Supports ASM, DIM (impulse response convolution), Fresnel variants, Voelz critical distance automatic regime switching, and autograd gradient flow for inverse design.
+The `propagation_sanity.viewer` layer is intentionally a **separate aesthetic** from this README — a minimalist Notion-style reader for calm report inspection:
+
+- **Self-contained HTML dashboard.** Single HTML file with embedded report JSON and pure SVG/CSS components. No external server. Drag any `*.json` report into the window to visualize it client-side.
+- **Notion-style properties block.** Status badge, propagator method, $z$, $\lambda$, resolution, $L$, Fresnel number $N_F$.
+- **Executive callout.** Numerical health summary with actionable physical warnings.
+- **Convergence progression bars.** Minimalist step bars comparing intensity relative error across grid resolutions, physical domains, and FFT padding against the 1.0 % tolerance threshold.
+- **Spectral support vs. Matsushima limit.** Ruler-style spectrum diagram showing the 99 % field-energy boundary relative to the Matsushima admissible bandlimit $f_{\text{limit}}$ and the Nyquist frequency $f_{\text{Nyq}}$.
+- **Toggle list checklist.** Collapsible Notion-style `▶ / ▼` list of all checks with formula blocks, assumptions, physical interpretation, and literature citations.
+- **Light / dark mode.** Classic Notion white paper `#ffffff` and Notion dark `#191919`.
+- **Formatted terminal viewer.** Unicode box drawing (`┌─┐`, `│`, `└─┘`), ANSI status indicators (`[ PASS ]`, `[ FAIL ]`, `[ CONVERGED ]`, `[ INFO ]`), and automatic TTY detection with plain-text fallback.
 
 ---
 
-## 10. References
+## What it can validate
 
-1. **K. Matsushima and T. Shimobaba**, "Band-Limited Angular Spectrum Method for Numerical Simulation of Free-Space Propagation in Far and Near Fields," *Optics Express* 17, 19662–19673 (2009). DOI: [10.1364/OE.17.019662](https://doi.org/10.1364/OE.17.019662)
-2. **F. Shen and A. Wang**, "Fast-Fourier-transform based numerical integration method for the Rayleigh–Sommerfeld diffraction formula," *Applied Optics* 45, 1102–1110 (2006). DOI: [10.1364/AO.45.001102](https://doi.org/10.1364/AO.45.001102)
-3. **D. Voelz and M. Roggemann**, "Digital simulation of scalar optical diffraction: revisiting chirp function sampling criteria and consequences," *Applied Optics* 48, 6132–6142 (2009). DOI: [10.1364/AO.48.006132](https://doi.org/10.1364/AO.48.006132)
+- **Sampling adequacy** — whether $\Delta x$ and $\Delta f$ adequately capture the input field and transfer function.
+- **Matsushima BLAS sampling bounds** — whether ASM chirp oscillations exceed the aliasing-free bound.
+- **Physical-domain containment** — whether energy leaks into domain edges or diffracted lobes exceed the computation window.
+- **Numerical convergence** — whether results stabilize under grid refinement (resolution), window enlargement (domain), or FFT padding (algorithmic).
+- **Model validity indicator** — discrepancy between ASM and the Fresnel paraxial approximation.
+
+## What it cannot validate
+
+- **Vector / Maxwell physics** — polarization, near-field evanescent coupling, high-NA vector effects.
+- **Inhomogeneous media** — complex index distributions (FDTD / BPM scope).
+- **Experimental reality** — fabricated device aberrations, laser coherence length limits, detector noise.
+
+---
+
+## Backends & adapters
+
+- **`WavepropAdapter` (`backend="waveprop"`)** — production-ready CPU / NumPy adapter supporting ASM, band-limited ASM (BLAS), single-step Fresnel, Fraunhofer, and Rayleigh–Sommerfeld direct integration (DI and FFT-DI).
+- **`TorchOpticsAdapter` (`backend="torchoptics"`)** — PyTorch-native differentiable optics adapter cleanly decoupling field geometry (`Field`, `PlanarGrid`, `shape`, `spacing`) from propagation settings (`propagation_method`, `asm_pad`, output resampling). Supports ASM, DIM (impulse-response convolution), Fresnel variants, Voelz critical-distance automatic regime switching, and autograd gradient flow for inverse design.
+
+---
+
+## Repository layout
+
+```text
+propagation-sanity/
+├── src/propagation_sanity/   core, validate, viewer, backends
+├── tests/                     property-based and reference benchmarks
+├── examples/                  01 square · 02 airy · 03 overfitting · 04 mitigation
+├── docs/                      design notes: check-spec, metrics, library boundaries
+├── assets/readme/             hero, failure-modes, pipeline
+├── pyproject.toml
+└── README.md
+```
+
+---
+
+## References
+
+1. **K. Matsushima, T. Shimobaba.** *Band-Limited Angular Spectrum Method for Numerical Simulation of Free-Space Propagation in Far and Near Fields.* Optics Express **17**, 19662–19673 (2009). [DOI: 10.1364/OE.17.019662](https://doi.org/10.1364/OE.17.019662)
+2. **F. Shen, A. Wang.** *Fast-Fourier-transform based numerical integration method for the Rayleigh–Sommerfeld diffraction formula.* Applied Optics **45**, 1102–1110 (2006). [DOI: 10.1364/AO.45.001102](https://doi.org/10.1364/AO.45.001102)
+3. **D. Voelz, M. Roggemann.** *Digital simulation of scalar optical diffraction: revisiting chirp function sampling criteria and consequences.* Applied Optics **48**, 6132–6142 (2009). [DOI: 10.1364/AO.48.006132](https://doi.org/10.1364/AO.48.006132)
+
+---
+
+## License
+
+MIT. See `pyproject.toml`.

@@ -1,0 +1,210 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="1200" height="420" viewBox="0 0 1200 420"
+     role="img" aria-labelledby="hero-title hero-desc">
+  <title id="hero-title">Propagation Sanity — numerical scalar wave propagation validation toolkit</title>
+  <desc id="hero-desc">Dark hero card with the project name, plain-language value, install command, and a code window showing the validate() API. Background motif of concentric wavefront rings and an FFT grid.</desc>
+
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0a0f1e"/>
+      <stop offset="55%" stop-color="#0d1428"/>
+      <stop offset="100%" stop-color="#101a36"/>
+    </linearGradient>
+    <radialGradient id="ringGrad" cx="0.78" cy="0.42" r="0.55">
+      <stop offset="0%" stop-color="#22d3ee" stop-opacity="0.18"/>
+      <stop offset="60%" stop-color="#22d3ee" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#22d3ee" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="codeGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0f162b"/>
+      <stop offset="100%" stop-color="#0b1124"/>
+    </linearGradient>
+    <linearGradient id="accentLine" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#a78bfa"/>
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1a2138" stroke-width="0.6"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="420" rx="22" fill="url(#bgGrad)"/>
+  <rect width="1200" height="420" rx="22" fill="url(#grid)" opacity="0.55"/>
+  <rect width="1200" height="420" rx="22" fill="url(#ringGrad)"/>
+
+  <!-- Wavefront rings (project motif) -->
+  <g stroke="#22d3ee" fill="none" opacity="0.18">
+    <circle cx="950" cy="180" r="60"/>
+    <circle cx="950" cy="180" r="110"/>
+    <circle cx="950" cy="180" r="170"/>
+    <circle cx="950" cy="180" r="240"/>
+    <circle cx="950" cy="180" r="320"/>
+    <circle cx="950" cy="180" r="410"/>
+  </g>
+  <!-- FFT grid markers on right side -->
+  <g stroke="#a78bfa" stroke-width="0.8" opacity="0.35">
+    <line x1="820" y1="180" x2="1080" y2="180"/>
+    <line x1="950" y1="60" x2="950" y2="300"/>
+  </g>
+  <g fill="#a78bfa" opacity="0.6">
+    <circle cx="950" cy="180" r="3"/>
+    <circle cx="820" cy="180" r="2"/>
+    <circle cx="1080" cy="180" r="2"/>
+    <circle cx="950" cy="60" r="2"/>
+    <circle cx="950" cy="300" r="2"/>
+  </g>
+
+  <!-- Eyebrow / category -->
+  <g transform="translate(56 56)">
+    <rect x="0" y="0" width="11" height="11" rx="2" fill="#22d3ee"/>
+    <text x="22" y="10" font-family="ui-monospace, SFMono-Regular, Menlo, monospace"
+          font-size="13" fill="#8b95b1" letter-spacing="0.5">
+      COMPUTATIONAL OPTICS · NUMERICAL VALIDATION
+    </text>
+  </g>
+
+  <!-- Title -->
+  <g transform="translate(56 110)" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif">
+    <text x="0" y="56" font-size="68" font-weight="800" fill="#e4e8f1" letter-spacing="-1.5">
+      Propagation Sanity
+    </text>
+    <text x="0" y="92" font-size="22" font-weight="500" fill="#a78bfa" letter-spacing="-0.2">
+      Numerical Scalar Wave Propagation Toolkit
+    </text>
+  </g>
+
+  <!-- Value body -->
+  <g transform="translate(56 230)" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">
+    <text x="0" y="0" font-size="18" fill="#c5cce0">
+      Catch chirp aliasing, circular convolution, domain truncation,
+    </text>
+    <text x="0" y="26" font-size="18" fill="#c5cce0">
+      paraxial misuse, and inverse-design overfitting before they
+    </text>
+    <text x="0" y="52" font-size="18" fill="#c5cce0">
+      corrupt your simulation results.
+    </text>
+  </g>
+
+  <!-- Install + CLI -->
+  <g transform="translate(56 320)" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">
+    <!-- pip install -->
+    <rect x="0" y="0" width="262" height="34" rx="8" fill="#0b1124" stroke="#1f2740"/>
+    <text x="14" y="22" font-size="14" fill="#e4e8f1">$</text>
+    <text x="32" y="22" font-size="14" fill="#22d3ee">pip install</text>
+    <text x="124" y="22" font-size="14" fill="#e4e8f1">propagation-sanity</text>
+
+    <!-- cli command -->
+    <rect x="278" y="0" width="362" height="34" rx="8" fill="#0b1124" stroke="#1f2740"/>
+    <text x="292" y="22" font-size="13" fill="#e4e8f1">$</text>
+    <text x="307" y="22" font-size="13" fill="#22d3ee">propagation-sanity</text>
+    <text x="427" y="22" font-size="13" fill="#a78bfa">check</text>
+    <text x="468" y="22" font-size="13" fill="#e4e8f1">--scenario square --z-mm 100</text>
+  </g>
+
+  <!-- Accent underline -->
+  <rect x="56" y="372" width="120" height="3" rx="1.5" fill="url(#accentLine)"/>
+
+  <!-- ============= Code window on the right ============= -->
+  <g transform="translate(700 70)">
+    <!-- window chrome -->
+    <rect x="0" y="0" width="444" height="310" rx="14" fill="url(#codeGrad)" stroke="#1f2740"/>
+    <!-- title bar -->
+    <rect x="0" y="0" width="444" height="34" rx="14" fill="#101729"/>
+    <rect x="0" y="20" width="444" height="14" fill="#101729"/>
+    <!-- traffic lights -->
+    <circle cx="18" cy="17" r="5.5" fill="#f87171" opacity="0.7"/>
+    <circle cx="36" cy="17" r="5.5" fill="#fbbf24" opacity="0.7"/>
+    <circle cx="54" cy="17" r="5.5" fill="#34d399" opacity="0.7"/>
+    <!-- filename -->
+    <text x="222" y="22" text-anchor="middle"
+          font-family="ui-monospace, SFMono-Regular, Menlo, monospace"
+          font-size="12" fill="#8b95b1">validate_square.py</text>
+
+    <!-- code -->
+    <g font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13">
+      <!-- line numbers -->
+      <g fill="#3a4360" text-anchor="end">
+        <text x="34" y="68">1</text>
+        <text x="34" y="88">2</text>
+        <text x="34" y="108">3</text>
+        <text x="34" y="128">4</text>
+        <text x="34" y="148">5</text>
+        <text x="34" y="168">6</text>
+        <text x="34" y="188">7</text>
+        <text x="34" y="208">8</text>
+        <text x="34" y="228">9</text>
+        <text x="34" y="248">10</text>
+        <text x="34" y="268">11</text>
+        <text x="34" y="288">12</text>
+      </g>
+
+      <!-- code lines -->
+      <text x="50" y="68" fill="#5b6480"># Define a 100 mm square-aperture propagation</text>
+
+      <text x="50" y="88">
+        <tspan fill="#c084fc">from</tspan>
+        <tspan fill="#e4e8f1"> propagation_sanity.core </tspan>
+        <tspan fill="#c084fc">import</tspan>
+        <tspan fill="#e4e8f1"> (</tspan>
+      </text>
+      <text x="64" y="108">
+        <tspan fill="#e4e8f1">    Grid, Wave, SquareAperture,</tspan>
+      </text>
+      <text x="64" y="128">
+        <tspan fill="#e4e8f1">    PropagationConfig, SimulationContract,</tspan>
+      </text>
+      <text x="64" y="148">
+        <tspan fill="#e4e8f1">)</tspan>
+      </text>
+
+      <text x="50" y="168">
+        <tspan fill="#c084fc">from</tspan>
+        <tspan fill="#e4e8f1"> propagation_sanity.validate </tspan>
+        <tspan fill="#c084fc">import</tspan>
+        <tspan fill="#22d3ee"> validate</tspan>
+      </text>
+
+      <text x="50" y="188">
+        <tspan fill="#e4e8f1">contract = </tspan>
+        <tspan fill="#22d3ee">SimulationContract</tspan>
+        <tspan fill="#e4e8f1">(</tspan>
+      </text>
+      <text x="64" y="208">
+        <tspan fill="#e4e8f1">    grid=</tspan>
+        <tspan fill="#22d3ee">Grid</tspan>
+        <tspan fill="#e4e8f1">(nx=512, dx=2e-6),</tspan>
+      </text>
+      <text x="64" y="228">
+        <tspan fill="#e4e8f1">    z=100e-3, source=</tspan>
+        <tspan fill="#22d3ee">SquareAperture</tspan>
+        <tspan fill="#e4e8f1">(half_width=50e-6),</tspan>
+      </text>
+      <text x="64" y="248">
+        <tspan fill="#e4e8f1">)</tspan>
+      </text>
+      <text x="50" y="268">
+        <tspan fill="#e4e8f1">report = </tspan>
+        <tspan fill="#22d3ee">validate</tspan>
+        <tspan fill="#e4e8f1">(contract, run_convergence=</tspan>
+        <tspan fill="#c084fc">True</tspan>
+        <tspan fill="#e4e8f1">)</tspan>
+      </text>
+      <text x="50" y="288">
+        <tspan fill="#e4e8f1">report.</tspan>
+        <tspan fill="#22d3ee">view</tspan>
+        <tspan fill="#e4e8f1">(format=</tspan>
+        <tspan fill="#34d399">"terminal"</tspan>
+        <tspan fill="#e4e8f1">)</tspan>
+      </text>
+    </g>
+  </g>
+
+  <!-- floating PASS badge bottom-right of code window -->
+  <g transform="translate(1056 350)" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">
+    <rect x="0" y="0" width="88" height="28" rx="14" fill="#052b1f" stroke="#1e6f4f"/>
+    <circle cx="14" cy="14" r="4" fill="#34d399"/>
+    <text x="26" y="18" font-size="12" fill="#34d399">PASS · BLAS</text>
+  </g>
+</svg>
