@@ -51,8 +51,14 @@ class WavepropAdapter:
     """Adapter wrapping waveprop library functions.
 
     Provides a uniform interface for ASM, Fresnel, Fraunhofer,
-    DI, and FFT-DI propagation.
+    DI, and FFT-DI propagation. Automatically applies defensive runtime
+    patches for upstream waveprop edge-case defects.
     """
+
+    def __init__(self) -> None:
+        from propagation_sanity.adapters.waveprop_patch import ensure_waveprop_patched
+
+        ensure_waveprop_patched()
 
     def propagate(
         self,
@@ -105,14 +111,30 @@ class WavepropAdapter:
         # Determine padding from config
         use_pad = config.padding > 1.0
 
-        u_out, x2, y2 = angular_spectrum_np(
-            u_in=field.data,
-            wv=wave.wavelength_medium,
-            d1=d1,
-            dz=z,
-            bandlimit=config.bandlimit,
-            pad=use_pad,
-        )
+        try:
+            u_out, x2, y2 = angular_spectrum_np(
+                u_in=field.data,
+                wv=wave.wavelength_medium,
+                d1=d1,
+                dz=z,
+                bandlimit=config.bandlimit,
+                pad=use_pad,
+            )
+        except UnboundLocalError:
+            # Fallback if unpatched waveprop raises UnboundLocalError with pad=False
+            from propagation_sanity.adapters.waveprop_patch import ensure_waveprop_patched
+
+            ensure_waveprop_patched()
+            from waveprop.rs import angular_spectrum_np as patched_asm
+
+            u_out, x2, y2 = patched_asm(
+                u_in=field.data,
+                wv=wave.wavelength_medium,
+                d1=d1,
+                dz=z,
+                bandlimit=config.bandlimit,
+                pad=use_pad,
+            )
 
         # Determine output grid
         # waveprop ASM returns same-size output with same spacing
@@ -267,6 +289,9 @@ class WavepropAdapter:
         z: float,
         config: PropagationConfig,
     ) -> PropagationResult:
+        from propagation_sanity.adapters.waveprop_patch import ensure_waveprop_patched
+
+        ensure_waveprop_patched()
         from waveprop.rs import fft_di
 
         grid = field.grid

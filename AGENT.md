@@ -75,4 +75,4 @@ Each backend adapter needs coordinate, normalization, simple-propagation, and me
  
 ## Documentation and Reference Hygiene
  
-All source code, docstrings, unit tests, and user-facing documentation must be completely self-contained. Do not include internal references to private planning documents, chapter/section numbers (e.g. `§59`, `plan section 53`), or internal roadmaps. All mathematical formulations and physical concepts should be explained directly with standard physics/optics literature citations.
+All source code, comments, docstrings, unit tests, example notebooks, and user-facing documentation must be written strictly in English. Do not include internal references to private planning documents, chapter/section numbers (e.g. `§59`, `plan section 53`), or internal roadmaps. All mathematical formulations and physical concepts should be explained directly with standard physics/optics literature citations.
