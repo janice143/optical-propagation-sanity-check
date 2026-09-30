@@ -13,6 +13,10 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
+torchoptics = [
+    "torch>=2.0",
+    "torchoptics>=1.0.2",
+]
 
 [project.scripts]
 propagation-sanity = "propagation_sanity.cli:main"

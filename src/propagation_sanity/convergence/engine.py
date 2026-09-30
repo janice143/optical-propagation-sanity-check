@@ -30,10 +30,13 @@ from propagation_sanity.core.report import (
 from propagation_sanity.adapters.waveprop_adapter import WavepropAdapter
 
 
-def _make_adapter(config: PropagationConfig) -> WavepropAdapter:
+def _make_adapter(config: PropagationConfig):
     """Instantiate the appropriate adapter."""
     if config.backend == "waveprop":
         return WavepropAdapter()
+    elif config.backend == "torchoptics":
+        from propagation_sanity.adapters.torchoptics_adapter import TorchOpticsAdapter
+        return TorchOpticsAdapter()
     raise ValueError(f"Unknown backend: {config.backend}")
 
 

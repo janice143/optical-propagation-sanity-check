@@ -43,6 +43,7 @@ def optimize_diffractive_element(
     z: float = 30e-3,
     bandlimit: bool = True,
     pad: bool = True,
+    backend: str = "waveprop",
     n_steps: int = 25,
     lr: float = 0.2,
 ) -> Tuple[PhaseModulator, list[float]]:
@@ -55,20 +56,45 @@ def optimize_diffractive_element(
     input_wave = torch.ones((ny, nx), dtype=torch.complex64, device=device)
     loss_history = []
 
+    if backend == "torchoptics":
+        from propagation_sanity.adapters.torchoptics_adapter import TorchOpticsAdapter
+        from propagation_sanity.core.grid import Grid
+        from propagation_sanity.core.wave import Wave
+        from propagation_sanity.core.propagation_config import PropagationConfig, PropagationMethod
+
+        to_adapter = TorchOpticsAdapter()
+        to_grid = Grid(nx=nx, ny=ny, dx=dx, dy=dy)
+        to_wave = Wave(wavelength=wavelength)
+        to_cfg = PropagationConfig(
+            method=PropagationMethod.ASM,
+            backend="torchoptics",
+            padding=2.0 if pad else 1.0,
+            bandlimit=bandlimit,
+        )
+
     for step in range(n_steps):
         optimizer.zero_grad()
         modulated = modulator(input_wave)
 
         # Forward propagation
-        propagated, _, _ = angular_spectrum(
-            u_in=modulated,
-            wv=wavelength,
-            d1=[dy, dx],
-            dz=z,
-            bandlimit=bandlimit,
-            pad=pad,
-            device=device,
-        )
+        if backend == "torchoptics":
+            propagated = to_adapter.propagate_tensor(
+                u_in=modulated,
+                grid=to_grid,
+                wave=to_wave,
+                z=z,
+                config=to_cfg,
+            )
+        else:
+            propagated, _, _ = angular_spectrum(
+                u_in=modulated,
+                wv=wavelength,
+                d1=[dy, dx],
+                dz=z,
+                bandlimit=bandlimit,
+                pad=pad,
+                device=device,
+            )
 
         intensity = torch.abs(propagated) ** 2
         # Normalise peak to 1 for loss comparison
@@ -94,6 +120,7 @@ def evaluate_phase_profile(
     z: float = 30e-3,
     bandlimit: bool = True,
     pad: bool = True,
+    backend: str = "waveprop",
 ) -> float:
     """Evaluate a trained phase modulator under a specific forward propagator."""
     device = "cpu"
@@ -101,15 +128,38 @@ def evaluate_phase_profile(
 
     with torch.no_grad():
         modulated = modulator(input_wave)
-        propagated, _, _ = angular_spectrum(
-            u_in=modulated,
-            wv=wavelength,
-            d1=[dy, dx],
-            dz=z,
-            bandlimit=bandlimit,
-            pad=pad,
-            device=device,
-        )
+        if backend == "torchoptics":
+            from propagation_sanity.adapters.torchoptics_adapter import TorchOpticsAdapter
+            from propagation_sanity.core.grid import Grid
+            from propagation_sanity.core.wave import Wave
+            from propagation_sanity.core.propagation_config import PropagationConfig, PropagationMethod
+
+            to_adapter = TorchOpticsAdapter()
+            to_grid = Grid(nx=nx, ny=ny, dx=dx, dy=dy)
+            to_wave = Wave(wavelength=wavelength)
+            to_cfg = PropagationConfig(
+                method=PropagationMethod.ASM,
+                backend="torchoptics",
+                padding=2.0 if pad else 1.0,
+                bandlimit=bandlimit,
+            )
+            propagated = to_adapter.propagate_tensor(
+                u_in=modulated,
+                grid=to_grid,
+                wave=to_wave,
+                z=z,
+                config=to_cfg,
+            )
+        else:
+            propagated, _, _ = angular_spectrum(
+                u_in=modulated,
+                wv=wavelength,
+                d1=[dy, dx],
+                dz=z,
+                bandlimit=bandlimit,
+                pad=pad,
+                device=device,
+            )
         intensity = torch.abs(propagated) ** 2
         intensity_norm = intensity / (intensity.max() + 1e-12)
         loss = nn.MSELoss()(intensity_norm, target_intensity)
@@ -123,6 +173,7 @@ def run_differentiable_optics_comparison(
     dy: float = 4e-6,
     wavelength: float = 532e-9,
     z: float = 30e-3,
+    backend: str = "waveprop",
     n_steps: int = 25,
 ) -> Dict[str, Any]:
     """Execute the full comparative experiment.
@@ -146,6 +197,7 @@ def run_differentiable_optics_comparison(
         z=z,
         bandlimit=False,
         pad=False,
+        backend=backend,
         n_steps=n_steps,
     )
 
@@ -160,15 +212,16 @@ def run_differentiable_optics_comparison(
         z=z,
         bandlimit=True,
         pad=True,
+        backend=backend,
         n_steps=n_steps,
     )
 
     # 3. Independent Cross-Verification on strictly validated propagator (bandlimit=True, pad=True)
     eval_a_on_validated = evaluate_phase_profile(
-        mod_a, target, nx=nx, ny=ny, dx=dx, dy=dy, wavelength=wavelength, z=z, bandlimit=True, pad=True
+        mod_a, target, nx=nx, ny=ny, dx=dx, dy=dy, wavelength=wavelength, z=z, bandlimit=True, pad=True, backend=backend
     )
     eval_b_on_validated = evaluate_phase_profile(
-        mod_b, target, nx=nx, ny=ny, dx=dx, dy=dy, wavelength=wavelength, z=z, bandlimit=True, pad=True
+        mod_b, target, nx=nx, ny=ny, dx=dx, dy=dy, wavelength=wavelength, z=z, bandlimit=True, pad=True, backend=backend
     )
 
     return {
@@ -179,3 +232,100 @@ def run_differentiable_optics_comparison(
         "losses_a": losses_a,
         "losses_b": losses_b,
     }
+
+
+def optimize_diffractive_element_torchoptics(
+    target_intensity: torch.Tensor,
+    nx: int = 48,
+    ny: int = 48,
+    dx: float = 4e-6,
+    dy: float = 4e-6,
+    wavelength: float = 532e-9,
+    z: float = 30e-3,
+    propagation_method: str = "ASM",
+    asm_pad: Tuple[int, int] | None = None,
+    n_steps: int = 25,
+    lr: float = 0.2,
+) -> Tuple[PhaseModulator, list[float]]:
+    """Train a phase modulator using the TorchOptics propagation engine.
+
+    Demonstrates differentiable propagation with TorchOptics's Field and PlanarGrid
+    architecture, supporting ASM, DIM, and configurable asm_pad boundary control.
+    """
+    from torchoptics import Field
+
+    device = "cpu"
+    modulator = PhaseModulator(nx, ny)
+    optimizer = torch.optim.Adam(modulator.parameters(), lr=lr)
+    loss_fn = nn.MSELoss()
+
+    input_wave = torch.ones((ny, nx), dtype=torch.complex64, device=device)
+    loss_history = []
+
+    for step in range(n_steps):
+        optimizer.zero_grad()
+        modulated = modulator(input_wave)
+
+        # Forward propagation via TorchOptics Field
+        field = Field(
+            data=modulated,
+            wavelength=wavelength,
+            spacing=(dy, dx),
+        )
+        propagated_field = field.propagate(
+            shape=(ny, nx),
+            z=z,
+            spacing=(dy, dx),
+            propagation_method=propagation_method,
+            asm_pad=asm_pad,
+        )
+
+        intensity = torch.abs(propagated_field.data) ** 2
+        intensity_norm = intensity / (intensity.max() + 1e-12)
+
+        loss = loss_fn(intensity_norm, target_intensity)
+        loss.backward()
+        optimizer.step()
+
+        loss_history.append(float(loss.item()))
+
+    return modulator, loss_history
+
+
+def evaluate_phase_profile_torchoptics(
+    modulator: PhaseModulator,
+    target_intensity: torch.Tensor,
+    nx: int = 48,
+    ny: int = 48,
+    dx: float = 4e-6,
+    dy: float = 4e-6,
+    wavelength: float = 532e-9,
+    z: float = 30e-3,
+    propagation_method: str = "ASM",
+    asm_pad: Tuple[int, int] | None = None,
+) -> float:
+    """Evaluate a trained phase modulator using TorchOptics forward propagation."""
+    from torchoptics import Field
+
+    device = "cpu"
+    input_wave = torch.ones((ny, nx), dtype=torch.complex64, device=device)
+
+    with torch.no_grad():
+        modulated = modulator(input_wave)
+        field = Field(
+            data=modulated,
+            wavelength=wavelength,
+            spacing=(dy, dx),
+        )
+        propagated_field = field.propagate(
+            shape=(ny, nx),
+            z=z,
+            spacing=(dy, dx),
+            propagation_method=propagation_method,
+            asm_pad=asm_pad,
+        )
+        intensity = torch.abs(propagated_field.data) ** 2
+        intensity_norm = intensity / (intensity.max() + 1e-12)
+        loss = nn.MSELoss()(intensity_norm, target_intensity)
+        return float(loss.item())
+

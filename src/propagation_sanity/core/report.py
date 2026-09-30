@@ -11,7 +11,8 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Sequence
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Sequence, Union
 
 
 # ---------------------------------------------------------------------------
@@ -112,6 +113,40 @@ class ReportItem:
                     d[key] = _serialise(val)
         return d
 
+    @classmethod
+    def from_dict(cls, d: Dict[str, Any]) -> ReportItem:
+        """Construct a ReportItem from a dictionary representation."""
+        data = dict(d)
+        raw_atype = data.pop("assessment_type")
+        atype = AssessmentType(raw_atype) if isinstance(raw_atype, str) else raw_atype
+
+        raw_status = data.pop("status")
+        status = ResultStatus(raw_status) if isinstance(raw_status, str) else raw_status
+
+        raw_prov = data.pop("threshold_provenance", None)
+        if raw_prov is not None:
+            prov = ThresholdProvenance(raw_prov) if isinstance(raw_prov, str) else raw_prov
+        else:
+            prov = ThresholdProvenance.NONE
+
+        return cls(
+            id=data.pop("id"),
+            title=data.pop("title"),
+            category=data.pop("category"),
+            assessment_type=atype,
+            value=data.pop("value"),
+            status=status,
+            threshold_provenance=prov,
+            applicable_methods=data.pop("applicable_methods", None),
+            unit=data.pop("unit", None),
+            formula=data.pop("formula", None),
+            assumptions=data.pop("assumptions", None),
+            threshold=data.pop("threshold", None),
+            source=data.pop("source", None),
+            interpretation=data.pop("interpretation", None),
+            recommended_action=data.pop("recommended_action", None),
+        )
+
 
 # ---------------------------------------------------------------------------
 # Validation report
@@ -149,8 +184,127 @@ class ValidationReport:
             "summary": self._summary_dict(),
         }
 
-    def to_json(self, **kwargs) -> str:
-        return json.dumps(self.to_dict(), indent=2, default=str, **kwargs)
+    def to_json(self, indent: int = 2, **kwargs) -> str:
+        return json.dumps(self.to_dict(), indent=indent, default=str, **kwargs)
+
+    def save(self, filepath: Union[str, Path], indent: int = 2) -> None:
+        """Save the validation report to a JSON file.
+
+        Parameters
+        ----------
+        filepath : str or Path
+            Target JSON file path.
+        indent : int, default=2
+            Indentation level for pretty JSON output.
+        """
+        p = Path(filepath)
+        p.parent.mkdir(parents=True, exist_ok=True)
+        with open(p, "w", encoding="utf-8") as f:
+            f.write(self.to_json(indent=indent))
+
+    def save_json(self, filepath: Union[str, Path], indent: int = 2) -> None:
+        """Alias for save()."""
+        self.save(filepath, indent=indent)
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> ValidationReport:
+        """Construct a ValidationReport instance from a dictionary."""
+        metadata = data.get("metadata", {})
+        results_data = data.get("results", [])
+        items = [ReportItem.from_dict(it) for it in results_data]
+        return cls(metadata=metadata, items=items)
+
+    @classmethod
+    def from_json(cls, json_str_or_path: Union[str, Path]) -> ValidationReport:
+        """Load a ValidationReport from a JSON string or file path.
+
+        Parameters
+        ----------
+        json_str_or_path : str or Path
+            Either a file path ending with .json / pointing to an existing file,
+            or a raw JSON string.
+        """
+        if isinstance(json_str_or_path, Path):
+            with open(json_str_or_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        elif isinstance(json_str_or_path, str):
+            stripped = json_str_or_path.strip()
+            if stripped.startswith("{") or stripped.startswith("["):
+                data = json.loads(json_str_or_path)
+            else:
+                p = Path(json_str_or_path)
+                if p.is_file():
+                    with open(p, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                else:
+                    data = json.loads(json_str_or_path)
+        else:
+            raise TypeError(f"Expected str or Path, got {type(json_str_or_path)}")
+        return cls.from_dict(data)
+
+    @classmethod
+    def load(cls, filepath: Union[str, Path]) -> ValidationReport:
+        """Load a ValidationReport from a JSON file path."""
+        return cls.from_json(filepath)
+
+    def to_html(
+        self,
+        output_path: Optional[Union[str, Path]] = None,
+        title: str = "Optical Propagation Validation Report",
+    ) -> str:
+        """Render the report to an interactive standalone HTML document.
+
+        Parameters
+        ----------
+        output_path : str or Path, optional
+            Path where the HTML file will be written.
+        title : str
+            Document title.
+
+        Returns
+        -------
+        str
+            The complete HTML document string.
+        """
+        from propagation_sanity.viewer.html_viewer import render_html
+        return render_html(self, output_path=output_path, title=title)
+
+    def save_html(
+        self,
+        filepath: Union[str, Path],
+        title: str = "Optical Propagation Validation Report",
+    ) -> str:
+        """Save the report as an interactive HTML document to the specified path."""
+        return self.to_html(output_path=filepath, title=title)
+
+    def view(
+        self,
+        format: str = "html",
+        open_browser: bool = False,
+        output_path: Optional[Union[str, Path]] = None,
+        color: Optional[bool] = None,
+    ) -> Any:
+        """Visualize the report in either HTML or terminal format.
+
+        Parameters
+        ----------
+        format : {"html", "terminal"}
+            Visualizer mode.
+        open_browser : bool
+            Whether to open the HTML viewer in the default browser.
+        output_path : str or Path, optional
+            Path to write HTML output to.
+        color : bool, optional
+            Whether to enable ANSI color codes in terminal mode.
+        """
+        from propagation_sanity.viewer import view
+        return view(
+            self,
+            format=format,
+            open_browser=open_browser,
+            output_path=output_path,
+            color=color,
+        )
 
     # ---- human-readable summary -----------------------------------------
 

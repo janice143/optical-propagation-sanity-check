@@ -32,6 +32,20 @@ Keep these categories distinct throughout the API and reports:
 
 Every threshold records provenance: `THEORETICAL`, `LITERATURE`, `PROJECT_DEFAULT`, or `USER_DEFINED`. Do not turn heuristics such as spectral-edge energy or ASM phase-step size into universal validity criteria. If a formal formula is uncertain, inspect the primary source, its assumptions and conventions, the backend implementation, and a numerical reproduction before implementing it; otherwise retain the result as a diagnostic or defer it.
 
+## Mature library research boundaries
+
+When researching or referencing external propagation libraries (`waveprop`, `TorchOptics`, `Diffractio`, `OpticStudio POP`), strictly limit investigation to numerical invariants, literature references, and engineering design patterns:
+
+- **waveprop**: coordinate conventions (row/y vs col/x, centering), zero-padding strategy, bandlimited ASM (Matsushima & Shimobaba 2009), direct integration (RS & FFT-DI), output coordinates.
+- **TorchOptics**: tensor data model, grid representation, padding conventions, output plane specification, method selection logic.
+- **Diffractio**: `quality_factor` design, user-facing numerical quality indicator exposure.
+- **OpticStudio POP**: sampling vs. array width trade-offs, guard band requirements, engineering warning mechanisms (notably: OpticStudio warns that an array width that is too large causes under-sampling of the beam, while too small causes aliasing; simply increasing the window is not an unconditional improvement).
+
+**Hard Boundaries:**
+- External libraries serve solely as engineering design and literature positioning references.
+- **Strictly forbid expanding V1 functional scope** (e.g. adding lens surfaces, vector fields, polarization, optimization loops, or arbitrary optical elements) based on features found in surveyed libraries.
+- For detailed boundary specs and checklists, see `docs/mature-library-boundaries.md` and `.agents/skills/mature-library-research/SKILL.md`.
+
 ## Intended architecture
 
 Organize code by numerical responsibility, not by application case:
@@ -55,6 +69,21 @@ Organize code by numerical responsibility, not by application case:
 - Compare results over a common physical ROI, never merely matching array indices.
 - Treat direct integration as a reference only after its own sampling, window, quadrature, and output-grid convergence are demonstrated.
 - Benchmark references should default to float64/complex128 and record backend/package version, dtype, device, geometry, configuration, and tolerances for reproducibility.
+
+## Project skills and knowledge assets
+
+The repository provides modular specifications and Antigravity Agent Skills to guide execution without scope creep or numerical errors:
+
+- **Skills (`.agents/skills/`)**:
+  - `mature-library-research`: Surveying external libraries (`waveprop`, `TorchOptics`, `Diffractio`, `OpticStudio POP`) adhering strictly to engineering boundaries.
+  - `run-convergence-study`: Setting up and executing 3-axis convergence experiments (resolution, domain, padding) via `ConvergenceEngine`. (Reference: `references/convergence-taxonomy.md`).
+  - `formula-audit`: 4-step protocol for vetting literature formulas, coordinate/sign conventions, and provenance. (Reference: `references/literature-provenance.md`).
+  - `run-benchmarks`: Executing canonical benchmark suites and verifying injected failure modes. (Reference: `references/benchmarks-and-failure-modes.md`).
+- **Technical Specifications (`docs/`)**:
+  - `docs/check-spec.md`: Detailed specification of all validation checks and thresholds.
+  - `docs/metrics-and-coordinate-alignment.md`: Formulations for ROI alignment, phase cancellation, masked phase error, and power diagnostics.
+  - `docs/mature-library-boundaries.md`: Comprehensive external library survey boundaries and trade-offs.
+  - `docs/waveprop-notes.md`: Notes on waveprop conventions, solvers, and upstream bugfixes.
 
 ## Implementation sequence
 
