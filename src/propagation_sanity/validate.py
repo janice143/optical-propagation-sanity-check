@@ -77,19 +77,19 @@ def validate(
     wave = contract.wave
 
     if field is not None:
-        # C02: Spectral edge energy
+        # Spectral edge energy
         report.add_item(spectral_edge_energy(field, alpha=spectral_edge_alpha))
 
-        # C03: Effective bandwidth
+        # Effective bandwidth
         report.add_item(effective_bandwidth(field))
 
-        # C05: Spatial boundary energy
+        # Spatial boundary energy
         report.add_item(boundary_energy(field, edge_fraction=boundary_edge_fraction))
 
-        # C11: Evanescent diagnostic
+        # Evanescent diagnostic
         report.add_item(evanescent_diagnostic(field, wave))
 
-    # C06: Paraxial FOV (for each z)
+    # Paraxial FOV (for each z)
     for z_val in contract.z_values:
         item = paraxial_fov_preview(grid, wave, z_val)
         if len(contract.z_values) > 1:
@@ -97,7 +97,7 @@ def validate(
             item.title = f"Paraxial FOV (z={z_val})"
         report.add_item(item)
 
-    # C07: ASM phase step and C08: Matsushima admissible band (ASM only)
+    # ASM phase step and Matsushima admissible band (ASM only)
     method = contract.propagation_config.method
     if method == PropagationMethod.ASM:
         from propagation_sanity.criteria.matsushima import asm_admissible_band_check
@@ -121,7 +121,7 @@ def validate(
             report.add_item(item)
             report.add_item(crit_item)
 
-    # C09: Fresnel phase remainder (Fresnel method, or as comparison)
+    # Fresnel phase remainder (Fresnel method, or as comparison)
     if method in (PropagationMethod.FRESNEL, PropagationMethod.ASM):
         for z_val in contract.z_values:
             item = fresnel_phase_remainder(grid, wave, z_val, field=field)
@@ -130,7 +130,7 @@ def validate(
                 item.title = f"Fresnel phase error (z={z_val})"
             report.add_item(item)
 
-    # C10: Fresnel number
+    # Fresnel number
     if contract.characteristic_size is not None:
         for z_val in contract.z_values:
             item = fresnel_number(wave, z_val, contract.characteristic_size)
@@ -139,7 +139,7 @@ def validate(
                 item.title = f"Fresnel number (z={z_val})"
             report.add_item(item)
 
-    # C04: Input feature pixels
+    # Input feature pixels
     if contract.characteristic_size is not None:
         feat_px_x = contract.characteristic_size / grid.dx
         feat_px_y = contract.characteristic_size / grid.dy
@@ -204,7 +204,7 @@ def _run_convergence(
 
     z_val = contract.z_values[0]  # Use first z for convergence
 
-    # C12: Resolution convergence (requires FieldSource)
+    # Resolution convergence (requires FieldSource)
     if contract.source is not None:
         report.add_item(resolution_convergence(
             source=contract.source,
@@ -230,7 +230,7 @@ def _run_convergence(
             ),
         ))
 
-    # C13: Domain convergence
+    # Domain convergence
     if contract.source is not None:
         report.add_item(domain_convergence(
             source=contract.source,
@@ -242,7 +242,7 @@ def _run_convergence(
             roi=contract.roi,
         ))
 
-    # C14: Padding convergence
+    # Padding convergence
     if contract.field is not None:
         report.add_item(padding_convergence(
             field=contract.field,

@@ -1,7 +1,7 @@
 """ASM-specific diagnostics.
 
-Implements checker C07 from the specification:
-- ASM phase-step diagnostic
+Analyzes the phase variation of the Angular Spectrum Method transfer function
+across adjacent discrete frequency grid samples.
 """
 
 from __future__ import annotations
@@ -42,7 +42,7 @@ def asm_phase_step(
     z: float,
     spectral_support_fraction: Optional[float] = None,
 ) -> ReportItem:
-    """C07 — ASM phase-step diagnostic.
+    """Analyze the phase step of the ASM transfer function between adjacent frequencies.
 
     Computes the maximum phase change of the ASM transfer function
     between adjacent frequency samples, using the **unwrapped

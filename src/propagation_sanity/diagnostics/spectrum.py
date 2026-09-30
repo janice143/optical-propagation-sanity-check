@@ -1,9 +1,7 @@
 """Spectral diagnostics for input field analysis.
 
-Implements checkers C02, C03, C11 from the specification:
-- Spectral edge energy (C02)
-- Effective spectrum / energy quantiles (C03)
-- Evanescent component diagnostic (C11)
+Provides frequency-domain evaluation including high-frequency edge energy,
+effective energy support quantiles, and evanescent sub-wavelength energy content.
 """
 
 from __future__ import annotations
@@ -33,7 +31,7 @@ def spectral_edge_energy(
     field: SampledField,
     alpha: float = 0.8,
 ) -> ReportItem:
-    """C02 — Input spectral edge energy diagnostic.
+    """Input spectral edge energy diagnostic.
 
     Computes the fraction of spectral energy in the outer
     ``(1 - alpha)`` band of the Nyquist frequency.
@@ -100,7 +98,7 @@ def effective_bandwidth(
     field: SampledField,
     coverage_levels: Optional[List[float]] = None,
 ) -> ReportItem:
-    """C03 — Effective spectrum energy quantiles.
+    """Effective spectrum energy support quantiles.
 
     Computes radial and per-axis frequency quantiles.
     """
@@ -195,7 +193,7 @@ def evanescent_diagnostic(
     field: SampledField,
     wave: Wave,
 ) -> ReportItem:
-    """C11 — Evanescent component diagnostic.
+    """Evanescent sub-wavelength component diagnostic.
 
     Computes the fraction of spectral energy beyond the
     propagating-wave cutoff ``1/λ``.

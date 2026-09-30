@@ -1,8 +1,7 @@
 """Propagation-model regime diagnostics.
 
-Implements checkers C09, C10 from the specification:
-- Fresnel phase remainder (C09)
-- Fresnel number / regime indicator (C10)
+Evaluates applicability of paraxial approximations, including the Fresnel
+phase remainder relative to ASM and the Fresnel number regime indicator.
 """
 
 from __future__ import annotations
@@ -30,7 +29,7 @@ def fresnel_phase_remainder(
     field: Optional[SampledField] = None,
     energy_coverage: float = 0.99,
 ) -> ReportItem:
-    """C09 — Fresnel phase remainder diagnostic.
+    """Fresnel phase remainder diagnostic.
 
     Computes the difference between the exact ASM phase and the
     Fresnel (paraxial quadratic) approximation over the active
@@ -138,7 +137,7 @@ def fresnel_number(
     z: float,
     characteristic_size: Optional[float] = None,
 ) -> ReportItem:
-    """C10 — Fresnel number diagnostic.
+    """Fresnel number regime indicator diagnostic.
 
     Parameters
     ----------

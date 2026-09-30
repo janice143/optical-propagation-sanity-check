@@ -1,9 +1,9 @@
 """Convergence experiment engines.
 
-Implements C12, C13, C14 from the specification:
-- Resolution convergence (C12)
-- Physical-domain convergence (C13)
-- Algorithmic-padding convergence (C14)
+Provides independent numerical stability experiments:
+- Resolution convergence: refine spatial sampling with fixed physical window
+- Physical-domain convergence: expand computational window with fixed sampling
+- Algorithmic-padding convergence: vary FFT zero-padding to assess boundary wrap-around
 """
 
 from __future__ import annotations
@@ -47,7 +47,7 @@ def resolution_convergence(
     tolerance: float = 0.01,
     roi: Optional[ROI] = None,
 ) -> ReportItem:
-    """C12 — Resolution convergence.
+    """Resolution convergence experiment.
 
     Fixes physical domain L, decreases Δx by successive *factors*.
     Each run regenerates the field from the FieldSource.
@@ -149,7 +149,7 @@ def domain_convergence(
     tolerance: float = 0.01,
     roi: Optional[ROI] = None,
 ) -> ReportItem:
-    """C13 — Physical-domain convergence.
+    """Physical-domain convergence experiment.
 
     Fixes Δx, increases L by successive *factors*.
     For non-compact fields, regenerates from FieldSource.
@@ -246,7 +246,7 @@ def padding_convergence(
     tolerance: float = 0.01,
     roi: Optional[ROI] = None,
 ) -> ReportItem:
-    """C14 — Algorithmic padding convergence.
+    """Algorithmic padding convergence experiment.
 
     Same physical problem; varies internal FFT padding factor.
 

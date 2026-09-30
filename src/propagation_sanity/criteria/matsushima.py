@@ -1,7 +1,7 @@
 """Matsushima & Shimobaba (2009) BLAS admissible band criterion.
 
-Implements checker C08 from the specification:
-- ASM admissible band / Matsushima criterion (FORMAL_CRITERION)
+Evaluates the formal sampling criterion for the Angular Spectrum Method (ASM)
+transfer function to detect chirp aliasing.
 
 Reference:
 K. Matsushima and T. Shimobaba, "Band-Limited Angular Spectrum Method for
@@ -54,7 +54,7 @@ def asm_admissible_band_check(
     padded: bool = True,
     bandlimit_enabled: bool = False,
 ) -> ReportItem:
-    """C08 — ASM admissible band formal criterion (Matsushima 2009).
+    """ASM admissible band formal criterion (Matsushima 2009).
 
     Evaluates whether the simulation frequency range stays within the
     aliasing-free sampling bound for the ASM transfer function.

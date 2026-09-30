@@ -1,8 +1,7 @@
 """Spatial boundary diagnostics.
 
-Implements checkers C05, C06 from the specification:
-- Spatial boundary energy (C05)
-- Paraxial FOV preview / f_safe (C06)
+Evaluates field containment at the computational window boundaries and
+previews diffracted field geometric expansion.
 """
 
 from __future__ import annotations
@@ -24,7 +23,7 @@ def boundary_energy(
     field: SampledField,
     edge_fraction: float = 0.05,
 ) -> ReportItem:
-    """C05 — Spatial boundary energy diagnostic.
+    """Spatial boundary energy diagnostic.
 
     Computes the fraction of field intensity in the outer
     ``edge_fraction`` strip of the spatial domain.
@@ -94,7 +93,7 @@ def paraxial_fov_preview(
     wave: Wave,
     z: float,
 ) -> ReportItem:
-    """C06 — Paraxial FOV preview (f_safe).
+    """Paraxial field-of-view (FOV) expansion preview (f_safe).
 
     Estimates whether diffracted spectral components may exceed the
     computation window using the paraxial relation x ≈ λ z f.
