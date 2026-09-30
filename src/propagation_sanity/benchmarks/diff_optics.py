@@ -1,4 +1,4 @@
-"""Differentiable Optics Demo (§65–§68, §93).
+"""Differentiable Optics Demo.
 
 Demonstrates numerical overfitting in computational/differentiable optics:
 - Case A (Weak Setup): unbandlimited ASM at large z, where the optimizer
@@ -125,7 +125,7 @@ def run_differentiable_optics_comparison(
     z: float = 30e-3,
     n_steps: int = 25,
 ) -> Dict[str, Any]:
-    """Execute the full comparative experiment (§65–§68).
+    """Execute the full comparative experiment.
 
     Trains Case A (Weak, bandlimit=False) and Case B (Validated, bandlimit=True).
     Then cross-verifies both under the validated propagator (bandlimit=True).

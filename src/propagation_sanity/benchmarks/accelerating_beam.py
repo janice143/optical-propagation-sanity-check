@@ -1,4 +1,4 @@
-"""Self-Accelerating Beam Benchmark scenario (§63–§64, §92).
+"""Self-Accelerating Beam Benchmark scenario.
 
 Demonstrates:
 1. Non-compact field source where domain enlargement requires field regeneration,
@@ -38,7 +38,7 @@ def build_airy_beam_contract(
     bandlimit: bool = True,
     padding: float = 2.0,
 ) -> SimulationContract:
-    """Construct an Airy beam simulation contract (§63)."""
+    """Construct an Airy beam simulation contract."""
     grid = Grid(nx=nx, ny=ny, dx=dx, dy=dy)
     wave = Wave(wavelength=wavelength)
     source = AiryBeam(scale=scale, decay=decay)
@@ -61,7 +61,7 @@ def build_airy_beam_contract(
 def run_airy_beam_suite(
     z_list: Sequence[float] = (0.0, 5e-3, 10e-3, 20e-3),
 ) -> Dict[str, Any]:
-    """Execute the accelerating beam suite (§92).
+    """Execute the accelerating beam suite.
 
     Tracks the peak intensity coordinate (acceleration trajectory)
     as a function of propagation distance z.

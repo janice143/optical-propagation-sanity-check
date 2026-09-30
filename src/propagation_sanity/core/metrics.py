@@ -1,7 +1,7 @@
 """Comparison metrics for output fields.
 
 All metrics operate on physical coordinates and support an optional
-ROI mask.  Functions follow plan sections 44–47.
+ROI mask.
 """
 
 from __future__ import annotations
@@ -23,7 +23,7 @@ def _apply_roi(arr: np.ndarray, field: SampledField, roi: Optional[ROI]) -> np.n
 
 
 # ------------------------------------------------------------------
-# §44  Intensity relative error
+# Intensity relative error
 # ------------------------------------------------------------------
 
 def intensity_relative_error(
@@ -52,7 +52,7 @@ def intensity_relative_error(
 
 
 # ------------------------------------------------------------------
-# §45  Global phase offset and complex-field relative error
+# Global phase offset and complex-field relative error
 # ------------------------------------------------------------------
 
 def global_phase_offset(
@@ -91,7 +91,7 @@ def complex_field_relative_error(
 
 
 # ------------------------------------------------------------------
-# §46  Phase error (masked)
+# Phase error (masked)
 # ------------------------------------------------------------------
 
 def phase_error(
@@ -141,7 +141,7 @@ def phase_error(
 
 
 # ------------------------------------------------------------------
-# §47  Power diagnostic
+# Power diagnostic
 # ------------------------------------------------------------------
 
 def power(field: SampledField) -> float:

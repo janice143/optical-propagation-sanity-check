@@ -202,7 +202,7 @@ class GaussianBeam(FieldSource):
 
 
 class AiryBeam(FieldSource):
-    """Finite-energy 2D Airy beam field source (§63-§64).
+    """Finite-energy 2D Airy beam field source.
 
     .. math::
         U(x, y) = \\text{Ai}\\left(\\frac{x}{x_0}\\right) e^{a x / x_0} \\cdot

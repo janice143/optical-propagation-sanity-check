@@ -1,4 +1,4 @@
-"""Tests for the Square Aperture Benchmark scenario (§59–§62, §91)."""
+"""Tests for the Square Aperture Benchmark scenario."""
 
 import pytest
 
@@ -11,7 +11,7 @@ from propagation_sanity.benchmarks.square_aperture import (
 
 
 class TestSquareApertureParameters:
-    """Verifies that §59 benchmark parameters produce exact derived quantities."""
+    """Verifies that benchmark parameters produce exact derived quantities."""
 
     def test_derived_quantities(self):
         c = build_square_aperture_contract(z=100e-3)
@@ -22,7 +22,7 @@ class TestSquareApertureParameters:
         assert g.nyquist_x == pytest.approx(250e3)  # 250 mm⁻¹
 
     def test_analytic_scales(self):
-        """Plan §61: Fraunhofer first null x1 = λ z / a."""
+        """Fraunhofer first null x1 = λ z / a."""
         suite = run_square_aperture_suite(z_list=[1e-3, 10e-3, 100e-3, 150e-3])
 
         # x1 = 532nm * z / 100μm
@@ -33,7 +33,7 @@ class TestSquareApertureParameters:
 
 
 class TestSquareApertureTrends:
-    """Verifies §62/§91 experimental trends across propagation distances."""
+    """Verifies diffraction trends across propagation distances."""
 
     def test_blas_difference_grows_with_distance(self):
         """At z=1mm, standard ASM and BLAS agree closely.

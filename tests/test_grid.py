@@ -7,11 +7,11 @@ from propagation_sanity.core.grid import Grid
 
 
 # ------------------------------------------------------------------
-# §70  Grid identities
+# Grid identities
 # ------------------------------------------------------------------
 
 class TestGridIdentities:
-    """Plan section 70: fundamental DFT grid relations."""
+    """Fundamental DFT grid relations."""
 
     def test_physical_extent(self):
         """L = N * dx"""
@@ -32,7 +32,7 @@ class TestGridIdentities:
         assert g.nyquist_y == pytest.approx(1.0 / (2 * 3e-6))
 
     def test_benchmark_parameters(self):
-        """Plan §59: standard benchmark N=512, dx=2μm → L=1.024mm, etc."""
+        """Standard benchmark parameters: N=512, dx=2μm → L=1.024mm, etc."""
         g = Grid(nx=512, ny=512, dx=2e-6, dy=2e-6)
         assert g.Lx == pytest.approx(1.024e-3)
         assert g.Ly == pytest.approx(1.024e-3)
@@ -41,7 +41,7 @@ class TestGridIdentities:
 
 
 # ------------------------------------------------------------------
-# §70  Padding relation
+# Padding relation
 # ------------------------------------------------------------------
 
 class TestPaddingRelation:

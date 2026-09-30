@@ -1,4 +1,4 @@
-"""Tests for Differentiable Optics benchmark (§65–§68, §93)."""
+"""Tests for Differentiable Optics benchmark."""
 
 import pytest
 import torch
@@ -40,7 +40,7 @@ class TestDifferentiableOptics:
         assert losses[-1] < losses[0]
 
     def test_diff_optics_comparison_runs(self):
-        """Plan §68: Both cases run, losses decrease."""
+        """Both cases run and demonstrate optimization progress."""
         res = run_differentiable_optics_comparison(
             nx=24, ny=24, dx=4e-6, dy=4e-6, wavelength=532e-9, z=20e-3, n_steps=8
         )

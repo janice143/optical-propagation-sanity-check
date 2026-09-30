@@ -1,6 +1,6 @@
 # Numerical Scalar Wave Propagation Sanity Check Toolkit
 
-> **Primary Disclaimer (§96):**
+> **Primary Disclaimer:**
 > **This toolkit does not prove physical correctness.** It only provides evidence about numerical stability, sampling adequacy, and known discretization risks within the tested scalar wave propagation model.
 
 ---
@@ -98,7 +98,7 @@ If a convergence test returns `UNVERIFIED`:
 
 ## 7. Examples & Benchmarks
 
-### Benchmark 1: Square Aperture Regression (§59–§62)
+### Benchmark 1: Square Aperture Regression
 Re-evaluates the classical square aperture ($N=512$, $\Delta x=2\,\mu\text{m}$, $\lambda=532\,\text{nm}$, $a=100\,\mu\text{m}$) across $z \in [1, 10, 100, 150]\,\text{mm}$:
 ```bash
 propagation-sanity benchmark --scenario square
@@ -106,13 +106,13 @@ propagation-sanity benchmark --scenario square
 - At $z=1\,\text{mm}$: Standard ASM and BLAS match to $<0.01\%$.
 - At $z=150\,\text{mm}$: Standard ASM suffers from severe chirp aliasing (discrepancy $>28\%$), while the Matsushima formal criterion flags `FAIL`.
 
-### Benchmark 2: Self-Accelerating Airy Beam (§63–§64)
+### Benchmark 2: Self-Accelerating Airy Beam
 Demonstrates non-compact field handling where physical-domain convergence requires field regeneration rather than simple zero-padding:
 ```bash
 propagation-sanity benchmark --scenario airy
 ```
 
-### Benchmark 3: Differentiable Optics Numerical Overfitting (§65–§68)
+### Benchmark 3: Differentiable Optics Numerical Overfitting
 Optimizes a phase element under a numerically weak propagator (unbandlimited ASM at large $z$) vs. a validated propagator (BLAS). Evaluating both designs under an independent, verified forward model proves that the weakly trained design suffered severe numerical overfitting.
 
 ---

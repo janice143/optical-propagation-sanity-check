@@ -3,7 +3,7 @@
 
 ## Project status
 
-The current repository is a clean-slate V1 redesign: implementation, tests, and examples have not yet been added. `pyproject.toml` already reserves `src/propagation_sanity/` and `tests/`. The authoritative design is [`docs/Numerical Scalar Wave Propagation Sanity CheckV1 完整实施计划.md`](docs/Numerical Scalar Wave Propagation Sanity CheckV1 完整实施计划.md). `README.md` is currently empty.
+The V1 implementation (Phases 0 through 10) is complete: core data models, diagnostics, Matsushima formal criterion, convergence engines, waveprop adapter, benchmark suites (square aperture, Airy beam, differentiable optics), and CLI are implemented and verified with 103 automated tests. All user-facing code and documentation are self-contained without internal plan section references.
 
 ## Development commands
 
@@ -72,3 +72,7 @@ Organize code by numerical responsibility, not by application case:
 Test grid identities, FFT/coordinate conventions, padding relationships, global-phase invariance of complex-field metrics, and scale invariance of normalized spectral diagnostics. Use synthetic numerical fields (band-limited fields, near-Nyquist sinusoids, plane waves) to test diagnostics themselves. Test convergence modes independently and include deliberate failure injection; a mitigation such as band-limiting must not convert evidence that the original setup failed into a PASS.
 
 Each backend adapter needs coordinate, normalization, simple-propagation, and metadata tests.
+ 
+## Documentation and Reference Hygiene
+ 
+All source code, docstrings, unit tests, and user-facing documentation must be completely self-contained. Do not include internal references to private planning documents, chapter/section numbers (e.g. `§59`, `plan section 53`), or internal roadmaps. All mathematical formulations and physical concepts should be explained directly with standard physics/optics literature citations.

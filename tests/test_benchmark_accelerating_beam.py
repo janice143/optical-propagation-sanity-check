@@ -1,4 +1,4 @@
-"""Tests for Accelerating Beam Benchmark (§63–§64, §92)."""
+"""Tests for Accelerating Beam Benchmark."""
 
 import numpy as np
 import pytest
@@ -16,7 +16,7 @@ class TestAiryBeamProperties:
         assert source.compact_support is False
 
     def test_domain_regeneration_vs_zero_padding(self):
-        """Plan §64: field is non-compact, so on a doubled domain,
+        """Field is non-compact, so on a doubled domain,
 
         the regenerated field has non-zero tails in the outer domain.
         """
@@ -36,7 +36,7 @@ class TestAiryBeamProperties:
 
 class TestAiryBeamPropagationTrajectory:
     def test_parabolic_acceleration_shift(self):
-        """Plan §63/§92: As z increases, the main lobe of the Airy beam accelerates
+        """As z increases, the main lobe of the Airy beam accelerates
 
         (shifts laterally) following the ballistic trajectory.
         """

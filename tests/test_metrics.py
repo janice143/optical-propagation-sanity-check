@@ -1,4 +1,4 @@
-"""Tests for comparison metrics — plan sections 44–47."""
+"""Tests for comparison metrics."""
 
 import numpy as np
 import pytest
@@ -27,7 +27,7 @@ def random_field(grid):
 
 
 # ------------------------------------------------------------------
-# §70  Global phase invariance
+# Global phase invariance
 # ------------------------------------------------------------------
 
 class TestGlobalPhaseInvariance:
@@ -60,7 +60,7 @@ class TestGlobalPhaseInvariance:
 
 
 # ------------------------------------------------------------------
-# §70  Scaling invariance
+# Scaling invariance
 # ------------------------------------------------------------------
 
 class TestScalingInvariance:

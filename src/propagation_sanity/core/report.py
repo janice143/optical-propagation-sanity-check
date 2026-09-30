@@ -70,10 +70,7 @@ class ValidationState(Enum):
 
 @dataclass
 class ReportItem:
-    """Single validation result.
-
-    Every field follows the schema defined in plan section 53.
-    """
+    """Single validation result with traceable metadata and evaluation status."""
 
     id: str
     title: str
@@ -158,7 +155,7 @@ class ValidationReport:
     # ---- human-readable summary -----------------------------------------
 
     def summary(self) -> str:
-        """Formatted text summary matching plan section 97 style."""
+        """Formatted human-readable text summary of the validation report."""
         lines: List[str] = []
         lines.append("NUMERICAL PROPAGATION VALIDATION")
         lines.append("")

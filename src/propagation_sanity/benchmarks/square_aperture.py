@@ -1,4 +1,4 @@
-"""Square Aperture Benchmark scenario (§59–§62).
+"""Square Aperture Benchmark scenario.
 
 Parameters:
 - N = 512
@@ -40,7 +40,7 @@ def build_square_aperture_contract(
     wavelength: float = 532e-9,
     aperture_width: float = 100e-6,
 ) -> SimulationContract:
-    """Build a standard square aperture simulation contract (§59)."""
+    """Build a standard square aperture simulation contract."""
     grid = Grid(nx=nx, ny=ny, dx=dx, dy=dy)
     wave = Wave(wavelength=wavelength)
     source = SquareAperture(half_width=aperture_width / 2.0)
@@ -64,7 +64,7 @@ def run_square_aperture_suite(
     z_list: Sequence[float] = (1e-3, 10e-3, 100e-3, 150e-3),
     run_convergence: bool = False,
 ) -> Dict[str, Any]:
-    """Execute the full square aperture benchmark suite across multiple z (§91).
+    """Execute the full square aperture benchmark suite across multiple z.
 
     For each distance:
     1. Runs full static validation report for standard ASM.

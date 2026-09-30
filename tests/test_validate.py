@@ -23,7 +23,7 @@ from propagation_sanity.validate import validate
 
 @pytest.fixture
 def benchmark_contract():
-    """Standard benchmark: plan §59 parameters."""
+    """Standard benchmark square aperture parameters."""
     grid = Grid(nx=512, ny=512, dx=2e-6, dy=2e-6)
     wave = Wave(wavelength=532e-9)
     source = SquareAperture(half_width=50e-6)
