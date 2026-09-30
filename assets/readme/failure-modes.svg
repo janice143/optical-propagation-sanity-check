@@ -94,14 +94,20 @@
     <!-- ===== Card 4: Paraxial misuse ===== -->
     <g transform="translate(722 150)">
       <rect x="0" y="0" width="200" height="200" rx="14" fill="url(#cardBg)" stroke="#1f2740"/>
-      <!-- icon: two cones - paraxial (correct) vs divergent (wrong) -->
+      <!-- icon: paraxial (narrow valid cone, green) vs wide non-paraxial (amber) -->
       <g transform="translate(20 20)">
-        <line x1="40" y1="0" x2="40" y2="60" stroke="#34d399" stroke-width="1.5"/>
-        <path d="M 40 0 L 28 60 M 40 0 L 52 60" stroke="#34d399" stroke-width="1.5" fill="none" opacity="0.6"/>
-        <line x1="120" y1="0" x2="120" y2="60" stroke="#fbbf24" stroke-width="1.5"/>
-        <path d="M 120 0 L 88 60 M 120 0 L 152 60" stroke="#fbbf24" stroke-width="1.5" fill="none"/>
-        <text x="20" y="78" font-family="ui-monospace, SFMono-Regular, Menlo, monospace"
-              font-size="10" fill="#5b6480">Fresnel vs exact</text>
+        <!-- paraxial: narrow cone, fill indicates "valid" -->
+        <polygon points="40,0 30,60 50,60" fill="#34d399" fill-opacity="0.18"
+                 stroke="#34d399" stroke-width="1.5" stroke-linejoin="round"/>
+        <line x1="40" y1="0" x2="40" y2="60" stroke="#34d399" stroke-width="1.2" opacity="0.6"/>
+        <text x="22" y="78" font-family="ui-monospace, SFMono-Regular, Menlo, monospace"
+              font-size="9" fill="#34d399">paraxial</text>
+        <!-- non-paraxial: wide cone, fill indicates "outside validity" -->
+        <polygon points="120,0 88,60 152,60" fill="#fbbf24" fill-opacity="0.18"
+                 stroke="#fbbf24" stroke-width="1.5" stroke-linejoin="round"/>
+        <line x1="120" y1="0" x2="120" y2="60" stroke="#fbbf24" stroke-width="1.2" opacity="0.6"/>
+        <text x="100" y="78" font-family="ui-monospace, SFMono-Regular, Menlo, monospace"
+              font-size="9" fill="#fbbf24">non-paraxial</text>
       </g>
       <text x="20" y="148" font-size="17" font-weight="600" fill="#e4e8f1">Paraxial misuse</text>
       <g transform="translate(20 158)" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="13" fill="#8b95b1">
@@ -113,15 +119,21 @@
     <!-- ===== Card 5: Numerical overfitting ===== -->
     <g transform="translate(944 150)">
       <rect x="0" y="0" width="200" height="200" rx="14" fill="url(#cardBg)" stroke="#1f2740"/>
-      <!-- icon: descending training loss curve vs validation loss -->
+      <!-- icon: training keeps dropping; validation bottoms out then RISES (overfitting gap) -->
       <g transform="translate(20 20)">
-        <path d="M 0 10 Q 30 8 60 14 T 120 24 T 160 30"
+        <!-- train curve: monotonically decreasing -->
+        <path d="M 0 8 Q 40 14 80 26 T 160 42"
               fill="none" stroke="#22d3ee" stroke-width="2" stroke-linecap="round"/>
-        <path d="M 0 30 Q 40 50 80 56 T 160 60"
+        <text x="120" y="14" font-family="ui-monospace, SFMono-Regular, Menlo, monospace"
+              font-size="8" fill="#22d3ee">train</text>
+        <!-- validation curve: descends then ascends (U-shape = overfitting) -->
+        <path d="M 0 14 Q 50 38 90 46 T 160 22"
               fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round"/>
+        <text x="120" y="56" font-family="ui-monospace, SFMono-Regular, Menlo, monospace"
+              font-size="8" fill="#f87171">eval</text>
+        <!-- gap indicator -->
+        <path d="M 150 40 L 158 22" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="2 2"/>
         <line x1="0" y1="62" x2="160" y2="62" stroke="#1f2740" stroke-width="1"/>
-        <text x="0" y="78" font-family="ui-monospace, SFMono-Regular, Menlo, monospace"
-              font-size="10" fill="#5b6480">train vs eval</text>
       </g>
       <text x="20" y="148" font-size="17" font-weight="600" fill="#e4e8f1">Numerical overfitting</text>
       <g transform="translate(20 158)" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="13" fill="#8b95b1">

@@ -87,24 +87,24 @@
     </text>
   </g>
 
-  <!-- Install + CLI -->
+  <!-- Install + meta -->
   <g transform="translate(56 320)" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">
-    <!-- pip install -->
-    <rect x="0" y="0" width="262" height="34" rx="8" fill="#0b1124" stroke="#1f2740"/>
-    <text x="14" y="22" font-size="14" fill="#e4e8f1">$</text>
-    <text x="32" y="22" font-size="14" fill="#22d3ee">pip install</text>
-    <text x="124" y="22" font-size="14" fill="#e4e8f1">propagation-sanity</text>
+    <!-- pip install badge (single, properly spaced) -->
+    <rect x="0" y="0" width="332" height="34" rx="8" fill="#0b1124" stroke="#1f2740"/>
+    <text x="14" y="22" font-size="14">
+      <tspan fill="#5b6480">$</tspan>
+      <tspan fill="#22d3ee" dx="10">pip install</tspan>
+      <tspan fill="#e4e8f1" dx="8">propagation-sanity</tspan>
+    </text>
 
-    <!-- cli command -->
-    <rect x="278" y="0" width="362" height="34" rx="8" fill="#0b1124" stroke="#1f2740"/>
-    <text x="292" y="22" font-size="13" fill="#e4e8f1">$</text>
-    <text x="307" y="22" font-size="13" fill="#22d3ee">propagation-sanity</text>
-    <text x="427" y="22" font-size="13" fill="#a78bfa">check</text>
-    <text x="468" y="22" font-size="13" fill="#e4e8f1">--scenario square --z-mm 100</text>
+    <!-- meta line beneath the badge -->
+    <text x="0" y="56" font-size="11" fill="#5b6480" letter-spacing="0.5">
+      PYTHON 3.9+ · MIT · NUMPY ≥ 1.23
+    </text>
   </g>
 
-  <!-- Accent underline -->
-  <rect x="56" y="372" width="120" height="3" rx="1.5" fill="url(#accentLine)"/>
+  <!-- Accent underline (separator between body text and install badge) -->
+  <rect x="56" y="298" width="80" height="2" rx="1" fill="url(#accentLine)"/>
 
   <!-- ============= Code window on the right ============= -->
   <g transform="translate(700 70)">
@@ -201,10 +201,10 @@
     </g>
   </g>
 
-  <!-- floating PASS badge bottom-right of code window -->
-  <g transform="translate(1056 350)" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">
-    <rect x="0" y="0" width="88" height="28" rx="14" fill="#052b1f" stroke="#1e6f4f"/>
-    <circle cx="14" cy="14" r="4" fill="#34d399"/>
-    <text x="26" y="18" font-size="12" fill="#34d399">PASS · BLAS</text>
+  <!-- floating PASS badge — sits in the bottom-right margin, below the code window -->
+  <g transform="translate(1056 386)" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">
+    <rect x="0" y="0" width="88" height="22" rx="11" fill="#052b1f" stroke="#1e6f4f"/>
+    <circle cx="11" cy="11" r="3.5" fill="#34d399"/>
+    <text x="22" y="15" font-size="11" fill="#34d399">PASS · BLAS</text>
   </g>
 </svg>
